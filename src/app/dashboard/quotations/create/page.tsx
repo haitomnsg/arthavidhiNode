@@ -69,18 +69,17 @@ const quotationFormSchema = z.object({
   clientAddress: z.string().min(1, "Client address is required"),
   clientPhone: z.string().min(1, "Client phone is required"),
   panNumber: z.string().optional(),
-  quotationDate: z.date(),
+  quotationDate: z.date({ required_error: "A quotation date is required." }),
   items: z.array(quotationItemSchema).min(1, "At least one item is required"),
 });
 
 export type QuotationFormValues = z.infer<typeof quotationFormSchema>;
 
-const defaultFormValues: QuotationFormValues = {
+const defaultFormValues: Partial<QuotationFormValues> = {
   clientName: "",
   clientAddress: "",
   clientPhone: "",
   panNumber: "",
-  quotationDate: new Date(),
   items: [{ description: "", quantity: 1, unit: "Pcs", rate: 0 }],
 };
 
@@ -89,14 +88,20 @@ export default function CreateQuotationPage() {
   const [isPending, startTransition] = useTransition();
   const [companyDetails, setCompanyDetails] = useState<Partial<Company>>({});
 
-  useEffect(() => {
-    getCompanyDetails().then(setCompanyDetails);
-  }, []);
-
   const form = useForm<QuotationFormValues>({
     resolver: zodResolver(quotationFormSchema),
     defaultValues: defaultFormValues,
   });
+
+  useEffect(() => {
+    getCompanyDetails().then(setCompanyDetails);
+    // Set date values on client side to avoid hydration mismatch
+    form.reset({
+        ...defaultFormValues,
+        quotationDate: new Date(),
+    });
+  }, [form]);
+
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -144,7 +149,10 @@ export default function CreateQuotationPage() {
                 title: "Quotation Downloaded",
                 description: `A PDF for ${values.clientName} has been generated.`,
             });
-            form.reset(defaultFormValues);
+            form.reset({
+                ...defaultFormValues,
+                quotationDate: new Date(),
+            });
         } catch (pdfError) {
             console.error("Failed to generate PDF on client:", pdfError);
             toast({

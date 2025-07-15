@@ -72,8 +72,8 @@ const billFormSchema = z.object({
   clientAddress: z.string().min(1, "Client address is required"),
   clientPhone: z.string().min(1, "Client phone is required"),
   panNumber: z.string().optional(),
-  billDate: z.date(),
-  dueDate: z.date(),
+  billDate: z.date({ required_error: "A bill date is required." }),
+  dueDate: z.date({ required_error: "A due date is required." }),
   items: z.array(billItemSchema).min(1, "At least one item is required"),
   discountType: z.enum(['percentage', 'amount']).default('amount'),
   discountPercentage: z.coerce.number().min(0, "Cannot be negative").max(100, "Cannot exceed 100").optional(),
@@ -82,13 +82,11 @@ const billFormSchema = z.object({
 
 export type BillFormValues = z.infer<typeof billFormSchema>;
 
-const defaultFormValues: BillFormValues = {
+const defaultFormValues: Partial<BillFormValues> = {
   clientName: "",
   clientAddress: "",
   clientPhone: "",
   panNumber: "",
-  billDate: new Date(),
-  dueDate: new Date(),
   items: [{ description: "", quantity: 1, unit: "Pcs", rate: 0 }],
   discountType: 'amount',
   discountAmount: 0,
@@ -101,15 +99,22 @@ export default function CreateBillPage() {
   const [companyDetails, setCompanyDetails] = useState<Partial<Company>>({});
   const [nextInvoiceNumber, setNextInvoiceNumber] = useState<string>("#INV-PREVIEW");
 
-  useEffect(() => {
-    getCompanyDetails().then(setCompanyDetails);
-    getNextInvoiceNumber().then(setNextInvoiceNumber);
-  }, []);
-
   const form = useForm<BillFormValues>({
     resolver: zodResolver(billFormSchema),
     defaultValues: defaultFormValues,
   });
+
+  useEffect(() => {
+    getCompanyDetails().then(setCompanyDetails);
+    getNextInvoiceNumber().then(setNextInvoiceNumber);
+    // Set date values on client side to avoid hydration mismatch
+    form.reset({
+        ...defaultFormValues,
+        billDate: new Date(),
+        dueDate: new Date(),
+    });
+  }, [form]);
+
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -197,7 +202,11 @@ export default function CreateBillPage() {
             });
         }
 
-        form.reset(defaultFormValues);
+        form.reset({
+            ...defaultFormValues,
+            billDate: new Date(),
+            dueDate: new Date(),
+        });
         getNextInvoiceNumber().then(setNextInvoiceNumber);
       }
     });
