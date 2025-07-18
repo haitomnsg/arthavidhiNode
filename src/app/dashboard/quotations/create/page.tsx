@@ -131,37 +131,40 @@ export default function CreateQuotationPage() {
 
   const onDownload = (values: QuotationFormValues) => {
     startTransition(() => {
-        try {
-            const pdfData = {
-                quotation: {
-                    ...values,
-                    clientPanNumber: values.panNumber
-                },
-                company: companyDetails,
-                totals: {
-                    subtotal,
-                    vat,
-                    total
-                }
-            }
-            generateQuotationPdf(pdfData);
-            toast({
-                title: "Quotation Downloaded",
-                description: `A PDF for ${values.clientName} has been generated.`,
-            });
-            form.reset({
-                ...defaultFormValues,
-                quotationDate: new Date(),
-            });
-        } catch (pdfError) {
-            console.error("Failed to generate PDF on client:", pdfError);
-            toast({
-                title: "PDF Generation Failed",
-                description: "The quotation could not be generated. Please check the console for errors.",
-                variant: "destructive",
-            });
-        }
+      // This transition is now only for potential future server actions.
+      // The PDF generation is handled immediately after.
     });
+
+    try {
+        const pdfData = {
+            quotation: {
+                ...values,
+                clientPanNumber: values.panNumber
+            },
+            company: companyDetails,
+            totals: {
+                subtotal,
+                vat,
+                total
+            }
+        }
+        generateQuotationPdf(pdfData);
+        toast({
+            title: "Quotation Downloaded",
+            description: `A PDF for ${values.clientName} has been generated.`,
+        });
+        form.reset({
+            ...defaultFormValues,
+            quotationDate: new Date(),
+        });
+    } catch (pdfError) {
+        console.error("Failed to generate PDF on client:", pdfError);
+        toast({
+            title: "PDF Generation Failed",
+            description: "The quotation could not be generated. Please check the console for errors.",
+            variant: "destructive",
+        });
+    }
   };
 
   return (

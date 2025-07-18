@@ -36,16 +36,16 @@ export function QuotationPreview({ company, quotation, subtotal, vat, total }: Q
           <Logo />
           <p className="font-bold text-lg mt-4">{company?.name || "Your Company"}</p>
           <p className="text-muted-foreground text-sm">{company?.address}</p>
-          <p className="text-muted-foreground text-sm">
-            {company?.phone && `Phone: ${company.phone}`}
-            {company?.email && company?.phone && " | "}
-            {company?.email && `Email: ${company.email}`}
-          </p>
-          <p className="text-muted-foreground text-sm">
-            {company?.panNumber && `PAN: ${company.panNumber}`}
-            {company?.vatNumber && company?.panNumber && " | "}
-            {company?.vatNumber && `VAT: ${company.vatNumber}`}
-          </p>
+          <div className="text-muted-foreground text-sm flex flex-wrap gap-x-1">
+            {company?.phone && <span>Phone: {company.phone}</span>}
+            {company?.email && company?.phone && <span>|</span>}
+            {company?.email && <span>Email: {company.email}</span>}
+          </div>
+          <div className="text-muted-foreground text-sm flex flex-wrap gap-x-1">
+            {company?.panNumber && <span>PAN: {company.panNumber}</span>}
+            {company?.vatNumber && company?.panNumber && <span>|</span>}
+            {company?.vatNumber && <span>VAT: {company.vatNumber}</span>}
+          </div>
         </div>
         <div className="text-right">
           <h2 className="text-3xl font-bold uppercase text-primary">Quotation</h2>
