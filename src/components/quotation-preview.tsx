@@ -24,9 +24,10 @@ interface QuotationPreviewProps {
     subtotal: number;
     vat: number;
     total: number;
+    quotationNumber: string;
 }
 
-export function QuotationPreview({ company, quotation, subtotal, vat, total }: QuotationPreviewProps) {
+export function QuotationPreview({ company, quotation, subtotal, vat, total, quotationNumber }: QuotationPreviewProps) {
   const formattedDate = quotation.quotationDate ? format(new Date(quotation.quotationDate), "PPP") : format(new Date(), "PPP");
   
   return (
@@ -49,7 +50,7 @@ export function QuotationPreview({ company, quotation, subtotal, vat, total }: Q
         </div>
         <div className="text-right">
           <h2 className="text-3xl font-bold uppercase text-primary">Quotation</h2>
-          <p className="text-muted-foreground">Date: {formattedDate}</p>
+          <p className="text-muted-foreground"># {quotationNumber}</p>
         </div>
        </header>
        <div className="grid grid-cols-2 gap-8 mb-8">
@@ -60,6 +61,11 @@ export function QuotationPreview({ company, quotation, subtotal, vat, total }: Q
           <p className="text-sm text-muted-foreground">{quotation.clientPhone || "Client Phone"}</p>
           {quotation.panNumber && <p className="text-sm text-muted-foreground">PAN: {quotation.panNumber}</p>}
           {quotation.vatNumber && <p className="text-sm text-muted-foreground">VAT: {quotation.vatNumber}</p>}
+          {quotation.clientPanNumber && <p className="text-sm text-muted-foreground">PAN: {quotation.clientPanNumber}</p>}
+          {quotation.clientVatNumber && <p className="text-sm text-muted-foreground">VAT: {quotation.clientVatNumber}</p>}
+        </div>
+         <div className="text-right">
+          <p><span className="font-semibold">Quotation Date:</span> {formattedDate}</p>
         </div>
        </div>
 

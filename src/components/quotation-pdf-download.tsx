@@ -18,6 +18,8 @@ interface Company {
 
 interface QuotationPdfData {
     quotation: {
+        id: number;
+        quotationNumber: string;
         clientName: string;
         clientAddress: string;
         clientPhone: string;
@@ -25,6 +27,7 @@ interface QuotationPdfData {
         clientVatNumber?: string | null;
         quotationDate: Date;
         items: {
+            id: number;
             description: string;
             quantity: number;
             unit: string;
@@ -72,7 +75,7 @@ export const generateQuotationPdf = (data: QuotationPdfData) => {
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(mutedTextColor[0], mutedTextColor[1], mutedTextColor[2]);
-    doc.text(`Date: ${format(new Date(quotation.quotationDate), "PPP")}`, pageWidth - margin, y, { align: 'right' });
+    doc.text(`# ${quotation.quotationNumber}`, pageWidth - margin, y, { align: 'right' });
     y += 6;
 
     doc.setFontSize(9);
@@ -90,9 +93,17 @@ export const generateQuotationPdf = (data: QuotationPdfData) => {
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(textColor[0], textColor[1], textColor[2]);
     doc.text("Quote For:", margin, y);
+    
+    const quoteDateX = pageWidth - margin - 50;
+    doc.text("Quote Date:", quoteDateX, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(mutedTextColor[0], mutedTextColor[1], mutedTextColor[2]);
+    doc.text(format(new Date(quotation.quotationDate), "PPP"), pageWidth - margin, y, { align: 'right' });
     y += 6;
 
+
     doc.setFont('helvetica', 'bold');
+    doc.setTextColor(textColor[0], textColor[1], textColor[2]);
     doc.text(quotation.clientName, margin, y);
     y += 6;
 
@@ -185,7 +196,7 @@ export const generateQuotationPdf = (data: QuotationPdfData) => {
     doc.text("ArthaVidhi - Billing Software by Haitomns Groups", pageWidth / 2, footerY + 4, { align: 'center' });
 
     // --- Save the PDF ---
-    doc.save(`Quotation - ${quotation.clientName}.pdf`);
+    doc.save(`Quotation - ${quotation.quotationNumber}.pdf`);
 
   } catch (error) {
     console.error("Error generating PDF: ", error);

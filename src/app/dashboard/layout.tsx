@@ -11,6 +11,7 @@ import {
   Settings,
   User,
   FilePenLine,
+  FileSearch,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -39,9 +40,10 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
-  { href: "/dashboard/bills", icon: FileText, label: "Find Bill" },
   { href: "/dashboard/bills/create", icon: PlusCircle, label: "Create Bill" },
+  { href: "/dashboard/bills", icon: FileText, label: "Find Bill" },
   { href: "/dashboard/quotations/create", icon: FilePenLine, label: "Create Quotation" },
+  { href: "/dashboard/quotations", icon: FileSearch, label: "Find Quotation" },
   { href: "/dashboard/account", icon: User, label: "Account" },
 ];
 

@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import * as z from "zod";
 import {
-  Download,
+  Save,
   PlusCircle,
   X,
   CalendarIcon,
@@ -44,6 +44,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getCompanyDetails } from "@/app/actions/company";
 import { generateQuotationPdf } from "@/components/quotation-pdf-download";
 import { QuotationPreview } from "@/components/quotation-preview";
+import { createQuotation, getNextQuotationNumber } from "@/app/actions/quotations";
 
 // Define types locally
 interface Company {
@@ -87,9 +88,9 @@ const defaultFormValues: Partial<QuotationFormValues> = {
 
 export default function CreateQuotationPage() {
   const { toast } = useToast();
-  const [isDownloading, setIsDownloading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [companyDetails, setCompanyDetails] = useState<Partial<Company>>({});
-  const [isClient, setIsClient] = useState(false);
+  const [nextQuotationNumber, setNextQuotationNumber] = useState<string>("#QUO-PREVIEW");
 
   const form = useForm<QuotationFormValues>({
     resolver: zodResolver(quotationFormSchema),
@@ -100,8 +101,8 @@ export default function CreateQuotationPage() {
   });
   
   useEffect(() => {
-    setIsClient(true);
     getCompanyDetails().then(setCompanyDetails);
+    getNextQuotationNumber().then(setNextQuotationNumber);
     form.reset({
         ...defaultFormValues,
         quotationDate: new Date(),
@@ -135,46 +136,44 @@ export default function CreateQuotationPage() {
     };
   }, [quotationData]);
 
-  const onDownload = (values: QuotationFormValues) => {
-    setIsDownloading(true);
-    try {
-        const pdfData = {
-            quotation: {
-                ...values,
-                clientPanNumber: values.panNumber,
-                clientVatNumber: values.vatNumber
-            },
-            company: companyDetails,
-            totals: {
-                subtotal,
-                vat,
-                total
-            }
-        }
-        generateQuotationPdf(pdfData);
+  const onSubmit = (values: QuotationFormValues) => {
+    startTransition(async () => {
+      const serverResponse = await createQuotation(values);
+      
+      if (serverResponse.error) {
         toast({
-            title: "Quotation Downloaded",
-            description: `A PDF for ${values.clientName} has been generated.`,
+          title: "Error",
+          description: serverResponse.error,
+          variant: "destructive",
         });
+        return;
+      }
+      
+      if (serverResponse.success && serverResponse.data) {
+        toast({
+          title: "Quotation Saved",
+          description: serverResponse.success,
+        });
+
+        try {
+            generateQuotationPdf(serverResponse.data);
+        } catch (pdfError) {
+            console.error("Failed to generate PDF on client:", pdfError);
+            toast({
+                title: "PDF Generation Failed",
+                description: "The quotation was saved, but the PDF could not be generated. You can download it later from the 'Find Quotations' page.",
+                variant: "destructive",
+            });
+        }
+
         form.reset({
             ...defaultFormValues,
             quotationDate: new Date(),
         });
-    } catch (pdfError) {
-        console.error("Failed to generate PDF on client:", pdfError);
-        toast({
-            title: "PDF Generation Failed",
-            description: "The quotation could not be generated. Please check the console for errors.",
-            variant: "destructive",
-        });
-    } finally {
-        setIsDownloading(false);
-    }
+        getNextQuotationNumber().then(setNextQuotationNumber);
+      }
+    });
   };
-  
-  if (!isClient) {
-    return null;
-  }
 
   return (
     <>
@@ -189,7 +188,7 @@ export default function CreateQuotationPage() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onDownload)} id="quotation-form" className="space-y-8">
+                <form onSubmit={form.handleSubmit(onSubmit)} id="quotation-form" className="space-y-8">
                   <div className="space-y-4">
                     <h3 className="text-lg font-medium">Client Details</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -239,8 +238,8 @@ export default function CreateQuotationPage() {
               </Form>
             </CardContent>
              <CardFooter>
-               <Button type="submit" form="quotation-form" disabled={isDownloading || !form.formState.isValid} size="lg">
-                 {isDownloading ? "Generating..." : <><Download className="mr-2 h-4 w-4" /> Generate & Download PDF</>}
+               <Button type="submit" form="quotation-form" disabled={isPending || !form.formState.isValid} size="lg">
+                 {isPending ? "Saving..." : <><Save className="mr-2 h-4 w-4" /> Save & Download Quotation</>}
                </Button>
              </CardFooter>
           </Card>
@@ -257,6 +256,7 @@ export default function CreateQuotationPage() {
                 subtotal={subtotal}
                 vat={vat} 
                 total={total}
+                quotationNumber={nextQuotationNumber}
               />
             </CardContent>
           </Card>
