@@ -6,7 +6,7 @@ import { Logo } from '@/components/logo';
 import { Separator } from '@/components/ui/separator';
 import type { QuotationFormValues } from '@/app/dashboard/quotations/create/page';
 
-// Define types locally since Prisma types are removed
+// Define types locally
 interface Company {
     id: number;
     userId: number;

@@ -4,7 +4,7 @@
 import jsPDF from 'jspdf';
 import { format } from 'date-fns';
 
-// Define types locally since Prisma types are removed
+// Define types locally
 interface Company {
     id: number;
     userId: number;
@@ -80,7 +80,7 @@ export const generateQuotationPdf = (data: QuotationPdfData) => {
     const phoneEmail = `Phone: ${company?.phone || 'N/A'} | Email: ${company?.email || 'N/A'}`;
     doc.text(phoneEmail, margin, y);
     y += 5;
-    const panVat = `PAN: ${company?.panNumber || 'N/A'} | VAT: ${company?.vatNumber || 'N/A'}`;
+    const panVat = `PAN: ${company?.panNumber || 'N/A'}` + (company?.vatNumber ? ` | VAT: ${company.vatNumber}` : '');
     doc.text(panVat, margin, y);
     y += 15;
 

@@ -45,7 +45,7 @@ import { getCompanyDetails } from "@/app/actions/company";
 import { generateQuotationPdf } from "@/components/quotation-pdf-download";
 import { QuotationPreview } from "@/components/quotation-preview";
 
-// Define types locally since Prisma types are removed
+// Define types locally
 interface Company {
   id: number;
   userId: number;
@@ -87,15 +87,19 @@ export default function CreateQuotationPage() {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [companyDetails, setCompanyDetails] = useState<Partial<Company>>({});
+  const [isClient, setIsClient] = useState(false);
 
   const form = useForm<QuotationFormValues>({
     resolver: zodResolver(quotationFormSchema),
-    defaultValues: defaultFormValues,
+    defaultValues: {
+        ...defaultFormValues,
+        quotationDate: undefined,
+    },
   });
-
+  
   useEffect(() => {
+    setIsClient(true);
     getCompanyDetails().then(setCompanyDetails);
-    // Set date values on client side to avoid hydration mismatch
     form.reset({
         ...defaultFormValues,
         quotationDate: new Date(),
@@ -130,11 +134,6 @@ export default function CreateQuotationPage() {
   }, [quotationData]);
 
   const onDownload = (values: QuotationFormValues) => {
-    startTransition(() => {
-      // This transition is now only for potential future server actions.
-      // The PDF generation is handled immediately after.
-    });
-
     try {
         const pdfData = {
             quotation: {
@@ -166,6 +165,10 @@ export default function CreateQuotationPage() {
         });
     }
   };
+  
+  if (!isClient) {
+    return null;
+  }
 
   return (
     <>

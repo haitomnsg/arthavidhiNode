@@ -3,7 +3,7 @@
 import jsPDF from 'jspdf';
 import { format } from 'date-fns';
 
-// Define types locally since Prisma types are removed
+// Define types locally
 interface Company {
     id: number;
     userId: number;
@@ -39,7 +39,7 @@ interface BillPdfData {
     company: Partial<Company>;
     totals: {
         subtotal: number;
-        discount: number;
+        discount: number | string;
         subtotalAfterDiscount: number;
         vat: number;
         total: number;
@@ -90,7 +90,7 @@ export const generateBillPdf = (data: BillPdfData) => {
     const phoneEmail = `Phone: ${company?.phone || 'N/A'} | Email: ${company?.email || 'N/A'}`;
     doc.text(phoneEmail, margin, y);
     y += 5;
-    const panVat = `PAN: ${company?.panNumber || 'N/A'} | VAT: ${company?.vatNumber || 'N/A'}`;
+    const panVat = `PAN: ${company?.panNumber || 'N/A'}` + (company?.vatNumber ? ` | VAT: ${company.vatNumber}` : '');
     doc.text(panVat, margin, y);
     y += 15;
 
@@ -150,7 +150,7 @@ export const generateBillPdf = (data: BillPdfData) => {
     doc.setTextColor(mutedTextColor[0], mutedTextColor[1], mutedTextColor[2]);
     
     bill.items.forEach(item => {
-        const rateAsNumber = Number(item.rate);
+        const rateAsNumber = Number(item.rate) || 0;
         const itemTotal = item.quantity * rateAsNumber;
         doc.line(margin, y, pageWidth - margin, y);
         y += 6;
@@ -183,8 +183,9 @@ export const generateBillPdf = (data: BillPdfData) => {
     doc.text(`Rs. ${totals.subtotal.toFixed(2)}`, totalsX, totalsY, { align: 'right' });
     totalsY += 7;
 
+    const numericDiscount = Number(totals.discount) || 0;
     doc.text(totals.appliedDiscountLabel, totalsLabelX, totalsY);
-    doc.text(`- Rs. ${totals.discount.toFixed(2)}`, totalsX, totalsY, { align: 'right' });
+    doc.text(`- Rs. ${numericDiscount.toFixed(2)}`, totalsX, totalsY, { align: 'right' });
     totalsY += 7;
 
     doc.setLineWidth(0.2);
