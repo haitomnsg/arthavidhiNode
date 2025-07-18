@@ -59,6 +59,7 @@ export function QuotationPreview({ company, quotation, subtotal, vat, total }: Q
           <p className="text-sm text-muted-foreground">{quotation.clientAddress || "Client Address"}</p>
           <p className="text-sm text-muted-foreground">{quotation.clientPhone || "Client Phone"}</p>
           {quotation.panNumber && <p className="text-sm text-muted-foreground">PAN: {quotation.panNumber}</p>}
+          {quotation.vatNumber && <p className="text-sm text-muted-foreground">VAT: {quotation.vatNumber}</p>}
         </div>
        </div>
 

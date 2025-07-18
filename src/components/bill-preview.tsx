@@ -65,7 +65,9 @@ export function BillPreview({ company, bill, subtotal, discount, subtotalAfterDi
           <p className="text-sm text-muted-foreground">{bill.clientAddress || "Client Address"}</p>
           <p className="text-sm text-muted-foreground">{bill.clientPhone || "Client Phone"}</p>
           {bill.panNumber && <p className="text-sm text-muted-foreground">PAN: {bill.panNumber}</p>}
+          {bill.vatNumber && <p className="text-sm text-muted-foreground">VAT: {bill.vatNumber}</p>}
           {bill.clientPanNumber && <p className="text-sm text-muted-foreground">PAN: {bill.clientPanNumber}</p>}
+          {bill.clientVatNumber && <p className="text-sm text-muted-foreground">VAT: {bill.clientVatNumber}</p>}
         </div>
         <div className="text-right">
           <p><span className="font-semibold">Bill Date:</span> {formattedDate}</p>

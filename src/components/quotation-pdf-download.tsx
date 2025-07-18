@@ -22,6 +22,7 @@ interface QuotationPdfData {
         clientAddress: string;
         clientPhone: string;
         clientPanNumber?: string | null;
+        clientVatNumber?: string | null;
         quotationDate: Date;
         items: {
             description: string;
@@ -103,6 +104,10 @@ export const generateQuotationPdf = (data: QuotationPdfData) => {
     y += 6;
     if (quotation.clientPanNumber) {
         doc.text(`PAN: ${quotation.clientPanNumber}`, margin, y);
+        y += 6;
+    }
+    if (quotation.clientVatNumber) {
+        doc.text(`VAT: ${quotation.clientVatNumber}`, margin, y);
     }
     y += 15;
 

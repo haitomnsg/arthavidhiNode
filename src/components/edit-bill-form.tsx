@@ -47,6 +47,7 @@ const updateBillFormSchema = z.object({
   clientAddress: z.string().min(1, "Client address is required"),
   clientPhone: z.string().min(1, "Client phone is required"),
   panNumber: z.string().optional(),
+  vatNumber: z.string().optional(),
   billDate: z.date(),
   dueDate: z.date(),
   items: z.array(billItemSchema).min(1, "At least one item is required"),
@@ -70,6 +71,7 @@ export function EditBillForm({ billData, onSuccess }: { billData: BillDataType, 
       clientAddress: bill.clientAddress,
       clientPhone: bill.clientPhone,
       panNumber: bill.clientPanNumber || "",
+      vatNumber: bill.clientVatNumber || "",
       billDate: new Date(bill.billDate),
       dueDate: new Date(bill.dueDate),
       items: bill.items.map((item: any) => ({
@@ -127,7 +129,10 @@ export function EditBillForm({ billData, onSuccess }: { billData: BillDataType, 
              <FormField name="clientPhone" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Client Phone</FormLabel><FormControl><Input {...field} placeholder="9876543210"/></FormControl><FormMessage /></FormItem>)} />
           </div>
           <FormField name="clientAddress" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Client Address</FormLabel><FormControl><Textarea {...field} placeholder="123 Main St, Anytown..."/></FormControl><FormMessage /></FormItem>)} />
-          <FormField name="panNumber" control={form.control} render={({ field }) => ( <FormItem><FormLabel>PAN Number (Optional)</FormLabel><FormControl><Input {...field} placeholder="Client's PAN"/></FormControl><FormMessage /></FormItem>)} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField name="panNumber" control={form.control} render={({ field }) => ( <FormItem><FormLabel>PAN Number (Optional)</FormLabel><FormControl><Input {...field} placeholder="Client's PAN"/></FormControl><FormMessage /></FormItem>)} />
+            <FormField name="vatNumber" control={form.control} render={({ field }) => ( <FormItem><FormLabel>VAT Number (Optional)</FormLabel><FormControl><Input {...field} placeholder="Client's VAT"/></FormControl><FormMessage /></FormItem>)} />
+          </div>
            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField name="billDate" control={form.control} render={({ field }) => (
                 <FormItem className="flex flex-col"><FormLabel>Bill Date</FormLabel>

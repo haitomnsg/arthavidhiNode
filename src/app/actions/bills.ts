@@ -14,6 +14,7 @@ interface Bill {
     clientAddress: string;
     clientPhone: string;
     clientPanNumber: string | null;
+    clientVatNumber: string | null;
     billDate: Date;
     dueDate: Date;
     discount: number;
@@ -47,6 +48,7 @@ const billFormSchema = z.object({
   clientAddress: z.string().min(1, "Client address is required"),
   clientPhone: z.string().min(1, "Client phone is required"),
   panNumber: z.string().optional(),
+  vatNumber: z.string().optional(),
   billDate: z.date(),
   dueDate: z.date(),
   items: z.array(billItemSchema).min(1, "At least one item is required"),
@@ -70,6 +72,7 @@ export const createBill = async (values: BillFormValues): Promise<{ success?: st
         discountPercentage,
         discountAmount,
         panNumber,
+        vatNumber,
         ...billDetails
     } = validatedFields.data;
 
@@ -100,8 +103,8 @@ export const createBill = async (values: BillFormValues): Promise<{ success?: st
         }
 
         const [billResult] = await connection.query<OkPacket>(
-            'INSERT INTO `Bill` (`clientName`, `clientAddress`, `clientPhone`, `clientPanNumber`, `billDate`, `dueDate`, `discount`, `status`, `userId`, `invoiceNumber`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [billDetails.clientName, billDetails.clientAddress, billDetails.clientPhone, panNumber, billDetails.billDate, billDetails.dueDate, finalDiscount, 'Pending', userId, invoiceNumber]
+            'INSERT INTO `Bill` (`clientName`, `clientAddress`, `clientPhone`, `clientPanNumber`, `clientVatNumber`, `billDate`, `dueDate`, `discount`, `status`, `userId`, `invoiceNumber`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [billDetails.clientName, billDetails.clientAddress, billDetails.clientPhone, panNumber, vatNumber, billDetails.billDate, billDetails.dueDate, finalDiscount, 'Pending', userId, invoiceNumber]
         );
         const newBillId = billResult.insertId;
 
@@ -166,6 +169,7 @@ export const updateBill = async (values: UpdateBillFormValues): Promise<{ succes
         discountPercentage,
         discountAmount,
         panNumber,
+        vatNumber,
         ...billDetails
     } = validatedFields.data;
 
@@ -184,8 +188,8 @@ export const updateBill = async (values: UpdateBillFormValues): Promise<{ succes
         await connection.beginTransaction();
 
         const [updateResult] = await connection.query<OkPacket>(
-            'UPDATE `Bill` SET `clientName` = ?, `clientAddress` = ?, `clientPhone` = ?, `clientPanNumber` = ?, `billDate` = ?, `dueDate` = ?, `discount` = ? WHERE `id` = ? AND `userId` = ?',
-            [billDetails.clientName, billDetails.clientAddress, billDetails.clientPhone, panNumber, billDetails.billDate, billDetails.dueDate, finalDiscount, billId, userId]
+            'UPDATE `Bill` SET `clientName` = ?, `clientAddress` = ?, `clientPhone` = ?, `clientPanNumber` = ?, `clientVatNumber` = ?, `billDate` = ?, `dueDate` = ?, `discount` = ? WHERE `id` = ? AND `userId` = ?',
+            [billDetails.clientName, billDetails.clientAddress, billDetails.clientPhone, panNumber, vatNumber, billDetails.billDate, billDetails.dueDate, finalDiscount, billId, userId]
         );
 
         if (updateResult.affectedRows === 0) {

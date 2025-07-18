@@ -69,6 +69,7 @@ const quotationFormSchema = z.object({
   clientAddress: z.string().min(1, "Client address is required"),
   clientPhone: z.string().min(1, "Client phone is required"),
   panNumber: z.string().optional(),
+  vatNumber: z.string().optional(),
   quotationDate: z.date({ required_error: "A quotation date is required." }),
   items: z.array(quotationItemSchema).min(1, "At least one item is required"),
 });
@@ -80,12 +81,13 @@ const defaultFormValues: Partial<QuotationFormValues> = {
   clientAddress: "",
   clientPhone: "",
   panNumber: "",
+  vatNumber: "",
   items: [{ description: "", quantity: 1, unit: "Pcs", rate: 0 }],
 };
 
 export default function CreateQuotationPage() {
   const { toast } = useToast();
-  const [isPending, startTransition] = useTransition();
+  const [isDownloading, setIsDownloading] = useState(false);
   const [companyDetails, setCompanyDetails] = useState<Partial<Company>>({});
   const [isClient, setIsClient] = useState(false);
 
@@ -134,11 +136,13 @@ export default function CreateQuotationPage() {
   }, [quotationData]);
 
   const onDownload = (values: QuotationFormValues) => {
+    setIsDownloading(true);
     try {
         const pdfData = {
             quotation: {
                 ...values,
-                clientPanNumber: values.panNumber
+                clientPanNumber: values.panNumber,
+                clientVatNumber: values.vatNumber
             },
             company: companyDetails,
             totals: {
@@ -163,6 +167,8 @@ export default function CreateQuotationPage() {
             description: "The quotation could not be generated. Please check the console for errors.",
             variant: "destructive",
         });
+    } finally {
+        setIsDownloading(false);
     }
   };
   
@@ -191,7 +197,10 @@ export default function CreateQuotationPage() {
                        <FormField name="clientPhone" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Client Phone</FormLabel><FormControl><Input {...field} placeholder="9876543210"/></FormControl><FormMessage /></FormItem>)} />
                     </div>
                     <FormField name="clientAddress" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Client Address</FormLabel><FormControl><Textarea {...field} placeholder="123 Main St, Anytown..."/></FormControl><FormMessage /></FormItem>)} />
-                    <FormField name="panNumber" control={form.control} render={({ field }) => ( <FormItem><FormLabel>PAN Number (Optional)</FormLabel><FormControl><Input {...field} placeholder="Client's PAN"/></FormControl><FormMessage /></FormItem>)} />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField name="panNumber" control={form.control} render={({ field }) => ( <FormItem><FormLabel>PAN Number (Optional)</FormLabel><FormControl><Input {...field} placeholder="Client's PAN"/></FormControl><FormMessage /></FormItem>)} />
+                        <FormField name="vatNumber" control={form.control} render={({ field }) => ( <FormItem><FormLabel>VAT Number (Optional)</FormLabel><FormControl><Input {...field} placeholder="Client's VAT"/></FormControl><FormMessage /></FormItem>)} />
+                    </div>
                     <FormField name="quotationDate" control={form.control} render={({ field }) => (
                       <FormItem className="flex flex-col"><FormLabel>Quotation Date</FormLabel>
                         <Popover>
@@ -230,8 +239,8 @@ export default function CreateQuotationPage() {
               </Form>
             </CardContent>
              <CardFooter>
-               <Button type="submit" form="quotation-form" disabled={isPending || !form.formState.isValid} size="lg">
-                 {isPending ? "Generating..." : <><Download className="mr-2 h-4 w-4" /> Generate & Download PDF</>}
+               <Button type="submit" form="quotation-form" disabled={isDownloading || !form.formState.isValid} size="lg">
+                 {isDownloading ? "Generating..." : <><Download className="mr-2 h-4 w-4" /> Generate & Download PDF</>}
                </Button>
              </CardFooter>
           </Card>

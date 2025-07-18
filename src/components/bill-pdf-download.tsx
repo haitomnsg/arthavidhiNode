@@ -1,3 +1,4 @@
+
 'use client';
 
 import jsPDF from 'jspdf';
@@ -24,6 +25,7 @@ interface BillPdfData {
         clientAddress: string;
         clientPhone: string;
         clientPanNumber: string | null;
+        clientVatNumber: string | null;
         billDate: Date;
         dueDate: Date;
         discount: number;
@@ -128,6 +130,10 @@ export const generateBillPdf = (data: BillPdfData) => {
     y += 6;
     if (bill.clientPanNumber) {
         doc.text(`PAN: ${bill.clientPanNumber}`, margin, y);
+        y+=6;
+    }
+    if (bill.clientVatNumber) {
+        doc.text(`VAT: ${bill.clientVatNumber}`, margin, y);
     }
     y += 15;
 

@@ -72,6 +72,7 @@ const billFormSchema = z.object({
   clientAddress: z.string().min(1, "Client address is required"),
   clientPhone: z.string().min(1, "Client phone is required"),
   panNumber: z.string().optional(),
+  vatNumber: z.string().optional(),
   billDate: z.date({ required_error: "A bill date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
   items: z.array(billItemSchema).min(1, "At least one item is required"),
@@ -87,6 +88,7 @@ const defaultFormValues: Partial<BillFormValues> = {
   clientAddress: "",
   clientPhone: "",
   panNumber: "",
+  vatNumber: "",
   items: [{ description: "", quantity: 1, unit: "Pcs", rate: 0 }],
   discountType: 'amount',
   discountAmount: 0,
@@ -101,7 +103,11 @@ export default function CreateBillPage() {
 
   const form = useForm<BillFormValues>({
     resolver: zodResolver(billFormSchema),
-    defaultValues: defaultFormValues,
+    defaultValues: {
+      ...defaultFormValues,
+      billDate: undefined,
+      dueDate: undefined,
+    },
   });
 
   useEffect(() => {
@@ -233,7 +239,10 @@ export default function CreateBillPage() {
                        <FormField name="clientPhone" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Client Phone</FormLabel><FormControl><Input {...field} placeholder="9876543210"/></FormControl><FormMessage /></FormItem>)} />
                     </div>
                     <FormField name="clientAddress" control={form.control} render={({ field }) => ( <FormItem><FormLabel>Client Address</FormLabel><FormControl><Textarea {...field} placeholder="123 Main St, Anytown..."/></FormControl><FormMessage /></FormItem>)} />
-                    <FormField name="panNumber" control={form.control} render={({ field }) => ( <FormItem><FormLabel>PAN Number (Optional)</FormLabel><FormControl><Input {...field} placeholder="Client's PAN"/></FormControl><FormMessage /></FormItem>)} />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <FormField name="panNumber" control={form.control} render={({ field }) => ( <FormItem><FormLabel>PAN Number (Optional)</FormLabel><FormControl><Input {...field} placeholder="Client's PAN"/></FormControl><FormMessage /></FormItem>)} />
+                        <FormField name="vatNumber" control={form.control} render={({ field }) => ( <FormItem><FormLabel>VAT Number (Optional)</FormLabel><FormControl><Input {...field} placeholder="Client's VAT"/></FormControl><FormMessage /></FormItem>)} />
+                    </div>
                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <FormField name="billDate" control={form.control} render={({ field }) => (
                           <FormItem className="flex flex-col"><FormLabel>Bill Date</FormLabel>
