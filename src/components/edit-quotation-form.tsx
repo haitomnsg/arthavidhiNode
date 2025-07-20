@@ -49,6 +49,7 @@ const updateQuotationFormSchema = z.object({
   vatNumber: z.string().optional(),
   quotationDate: z.date(),
   items: z.array(quotationItemSchema).min(1, "At least one item is required"),
+  remarks: z.string().optional(),
 });
 
 
@@ -74,6 +75,7 @@ export function EditQuotationForm({ quotationData, onSuccess }: { quotationData:
         unit: item.unit,
         rate: item.rate,
       })),
+      remarks: quotation.remarks || "",
     },
   });
 
@@ -143,6 +145,21 @@ export function EditQuotationForm({ quotationData, onSuccess }: { quotationData:
               </div>
             ))}
             <Button type="button" variant="outline" onClick={() => append({ description: "", quantity: 1, unit: "Pcs", rate: 0 })}><PlusCircle className="mr-2 h-4 w-4" /> Add Item</Button>
+        </div>
+
+        <Separator />
+        
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Remarks</h3>
+          <FormField name="remarks" control={form.control} render={({ field }) => (
+              <FormItem>
+                  <FormLabel>Remarks (Optional)</FormLabel>
+                  <FormControl>
+                      <Textarea {...field} placeholder="Add any additional notes, terms, or conditions here." />
+                  </FormControl>
+                  <FormMessage />
+              </FormItem>
+          )} />
         </div>
       </form>
        <DialogFooter className="pt-4">

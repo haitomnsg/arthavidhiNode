@@ -54,6 +54,7 @@ const updateBillFormSchema = z.object({
   discountType: z.enum(['percentage', 'amount']).default('amount'),
   discountPercentage: z.coerce.number().min(0, "Cannot be negative").max(100, "Cannot exceed 100").optional(),
   discountAmount: z.coerce.number().min(0, "Cannot be negative").optional(),
+  remarks: z.string().optional(),
 });
 
 
@@ -83,6 +84,7 @@ export function EditBillForm({ billData, onSuccess }: { billData: BillDataType, 
       discountType: 'amount',
       discountAmount: bill.discount || 0,
       discountPercentage: 0, // Simplified, can be enhanced later
+      remarks: bill.remarks || "",
     },
   });
 
@@ -216,6 +218,21 @@ export function EditBillForm({ billData, onSuccess }: { billData: BillDataType, 
                   </FormItem>
               )} />
           </div>
+        </div>
+
+        <Separator />
+        
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Remarks</h3>
+          <FormField name="remarks" control={form.control} render={({ field }) => (
+              <FormItem>
+                  <FormLabel>Remarks (Optional)</FormLabel>
+                  <FormControl>
+                      <Textarea {...field} placeholder="Add any additional notes, terms, or conditions here." />
+                  </FormControl>
+                  <FormMessage />
+              </FormItem>
+          )} />
         </div>
       </form>
        <DialogFooter className="pt-4">

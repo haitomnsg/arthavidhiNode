@@ -79,6 +79,7 @@ const billFormSchema = z.object({
   discountType: z.enum(['percentage', 'amount']).default('amount'),
   discountPercentage: z.coerce.number().min(0, "Cannot be negative").max(100, "Cannot exceed 100").optional(),
   discountAmount: z.coerce.number().min(0, "Cannot be negative").optional(),
+  remarks: z.string().optional(),
 });
 
 export type BillFormValues = z.infer<typeof billFormSchema>;
@@ -93,6 +94,7 @@ const defaultFormValues: Partial<BillFormValues> = {
   discountType: 'amount',
   discountAmount: 0,
   discountPercentage: 0,
+  remarks: "",
 };
 
 export default function CreateBillPage() {
@@ -364,6 +366,19 @@ export default function CreateBillPage() {
                             )}
                         />
                     </div>
+                  </div>
+                  <Separator />
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Remarks</h3>
+                    <FormField name="remarks" control={form.control} render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Remarks (Optional)</FormLabel>
+                            <FormControl>
+                                <Textarea {...field} placeholder="Add any additional notes, terms, or conditions here." />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
                   </div>
                 </form>
               </Form>

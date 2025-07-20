@@ -19,6 +19,7 @@ interface Bill {
     dueDate: Date;
     discount: number;
     status: string; // e.g., 'Pending', 'Paid'
+    remarks: string | null;
     createdAt: Date;
     updatedAt: Date;
     items?: BillItem[];
@@ -55,6 +56,7 @@ const billFormSchema = z.object({
   discountType: z.enum(['percentage', 'amount']),
   discountPercentage: z.coerce.number().min(0).max(100).optional(),
   discountAmount: z.coerce.number().min(0).optional(),
+  remarks: z.string().optional(),
 });
 
 type BillFormValues = z.infer<typeof billFormSchema>;
@@ -103,8 +105,8 @@ export const createBill = async (values: BillFormValues): Promise<{ success?: st
         }
 
         const [billResult] = await connection.query<OkPacket>(
-            'INSERT INTO `Bill` (`clientName`, `clientAddress`, `clientPhone`, `clientPanNumber`, `clientVatNumber`, `billDate`, `dueDate`, `discount`, `status`, `userId`, `invoiceNumber`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [billDetails.clientName, billDetails.clientAddress, billDetails.clientPhone, panNumber, vatNumber, billDetails.billDate, billDetails.dueDate, finalDiscount, 'Pending', userId, invoiceNumber]
+            'INSERT INTO `Bill` (`clientName`, `clientAddress`, `clientPhone`, `clientPanNumber`, `clientVatNumber`, `billDate`, `dueDate`, `discount`, `status`, `userId`, `invoiceNumber`, `remarks`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [billDetails.clientName, billDetails.clientAddress, billDetails.clientPhone, panNumber, vatNumber, billDetails.billDate, billDetails.dueDate, finalDiscount, 'Pending', userId, invoiceNumber, billDetails.remarks]
         );
         const newBillId = billResult.insertId;
 
@@ -188,8 +190,8 @@ export const updateBill = async (values: UpdateBillFormValues): Promise<{ succes
         await connection.beginTransaction();
 
         const [updateResult] = await connection.query<OkPacket>(
-            'UPDATE `Bill` SET `clientName` = ?, `clientAddress` = ?, `clientPhone` = ?, `clientPanNumber` = ?, `clientVatNumber` = ?, `billDate` = ?, `dueDate` = ?, `discount` = ? WHERE `id` = ? AND `userId` = ?',
-            [billDetails.clientName, billDetails.clientAddress, billDetails.clientPhone, panNumber, vatNumber, billDetails.billDate, billDetails.dueDate, finalDiscount, billId, userId]
+            'UPDATE `Bill` SET `clientName` = ?, `clientAddress` = ?, `clientPhone` = ?, `clientPanNumber` = ?, `clientVatNumber` = ?, `billDate` = ?, `dueDate` = ?, `discount` = ?, `remarks` = ? WHERE `id` = ? AND `userId` = ?',
+            [billDetails.clientName, billDetails.clientAddress, billDetails.clientPhone, panNumber, vatNumber, billDetails.billDate, billDetails.dueDate, finalDiscount, billDetails.remarks, billId, userId]
         );
 
         if (updateResult.affectedRows === 0) {

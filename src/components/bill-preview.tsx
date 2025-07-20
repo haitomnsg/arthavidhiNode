@@ -102,7 +102,15 @@ export function BillPreview({ company, bill, subtotal, discount, subtotalAfterDi
         </table>
        </div>
 
-       <div className="flex justify-end mt-8">
+       <div className="mt-8 flex justify-between items-start">
+        <div className="w-1/2">
+            {bill.remarks && (
+                <div>
+                    <h4 className="font-semibold text-sm mb-1">Remarks:</h4>
+                    <p className="text-xs text-muted-foreground whitespace-pre-wrap">{bill.remarks}</p>
+                </div>
+            )}
+        </div>
         <div className="w-full max-w-xs space-y-2">
             <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>Rs. {subtotal.toFixed(2)}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">{appliedDiscountLabel}</span><span>- Rs. {numericDiscount.toFixed(2)}</span></div>

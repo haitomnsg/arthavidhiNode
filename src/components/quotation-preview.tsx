@@ -96,14 +96,23 @@ export function QuotationPreview({ company, quotation, subtotal, vat, total, quo
         </table>
        </div>
 
-       <div className="flex justify-end mt-8">
-        <div className="w-full max-w-xs space-y-2">
+       <div className="mt-8 flex justify-between items-start">
+         <div className="w-1/2">
+             {quotation.remarks && (
+                 <div>
+                     <h4 className="font-semibold text-sm mb-1">Remarks:</h4>
+                     <p className="text-xs text-muted-foreground whitespace-pre-wrap">{quotation.remarks}</p>
+                 </div>
+             )}
+         </div>
+         <div className="w-full max-w-xs space-y-2">
             <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>Rs. {subtotal.toFixed(2)}</span></div>
             <div className="flex justify-between"><span className="text-muted-foreground">VAT (13%)</span><span>Rs. {vat.toFixed(2)}</span></div>
             <Separator />
             <div className="flex justify-between font-bold text-lg"><span className="text-primary">Total</span><span className="text-primary">Rs. {total.toFixed(2)}</span></div>
-        </div>
+         </div>
        </div>
+
 
        <footer className="mt-16 text-center text-xs text-muted-foreground">
         <p>This quotation is valid for 30 days.</p>

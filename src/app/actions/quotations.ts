@@ -1,3 +1,4 @@
+
 'use server';
 
 import db from '@/lib/db';
@@ -15,6 +16,7 @@ interface Quotation {
     clientPanNumber: string | null;
     clientVatNumber: string | null;
     quotationDate: Date;
+    remarks: string | null;
     createdAt: Date;
     updatedAt: Date;
     items?: QuotationItem[];
@@ -47,6 +49,7 @@ const quotationFormSchema = z.object({
   vatNumber: z.string().optional(),
   quotationDate: z.date(),
   items: z.array(quotationItemSchema).min(1, "At least one item is required"),
+  remarks: z.string().optional(),
 });
 
 type QuotationFormValues = z.infer<typeof quotationFormSchema>;
@@ -97,8 +100,8 @@ export const createQuotation = async (values: QuotationFormValues): Promise<{ su
         }
 
         const [quotationResult] = await connection.query<OkPacket>(
-            'INSERT INTO `Quotation` (`clientName`, `clientAddress`, `clientPhone`, `clientPanNumber`, `clientVatNumber`, `quotationDate`, `userId`, `quotationNumber`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [quotationDetails.clientName, quotationDetails.clientAddress, quotationDetails.clientPhone, panNumber, vatNumber, quotationDetails.quotationDate, userId, quotationNumber]
+            'INSERT INTO `Quotation` (`clientName`, `clientAddress`, `clientPhone`, `clientPanNumber`, `clientVatNumber`, `quotationDate`, `userId`, `quotationNumber`, `remarks`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [quotationDetails.clientName, quotationDetails.clientAddress, quotationDetails.clientPhone, panNumber, vatNumber, quotationDetails.quotationDate, userId, quotationNumber, quotationDetails.remarks]
         );
         const newQuotationId = quotationResult.insertId;
 
@@ -269,8 +272,8 @@ export const updateQuotation = async (values: UpdateQuotationFormValues): Promis
         await connection.beginTransaction();
 
         const [updateResult] = await connection.query<OkPacket>(
-            'UPDATE `Quotation` SET `clientName` = ?, `clientAddress` = ?, `clientPhone` = ?, `clientPanNumber` = ?, `clientVatNumber` = ?, `quotationDate` = ? WHERE `id` = ? AND `userId` = ?',
-            [quotationDetails.clientName, quotationDetails.clientAddress, quotationDetails.clientPhone, panNumber, vatNumber, quotationDetails.quotationDate, quotationId, userId]
+            'UPDATE `Quotation` SET `clientName` = ?, `clientAddress` = ?, `clientPhone` = ?, `clientPanNumber` = ?, `clientVatNumber` = ?, `quotationDate` = ?, `remarks` = ? WHERE `id` = ? AND `userId` = ?',
+            [quotationDetails.clientName, quotationDetails.clientAddress, quotationDetails.clientPhone, panNumber, vatNumber, quotationDetails.quotationDate, quotationDetails.remarks, quotationId, userId]
         );
 
         if (updateResult.affectedRows === 0) {

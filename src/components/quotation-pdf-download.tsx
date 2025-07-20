@@ -26,6 +26,7 @@ interface QuotationPdfData {
         clientPanNumber?: string | null;
         clientVatNumber?: string | null;
         quotationDate: Date;
+        remarks?: string | null;
         items: {
             id: number;
             description: string;
@@ -156,7 +157,9 @@ export const generateQuotationPdf = (data: QuotationPdfData) => {
 
     // --- Totals Section ---
     const totalsBlockHeight = 40; // Estimated height for totals section
-    if (y + totalsBlockHeight > pageHeight - 25) { // Check if it fits on the page (25 is margin for footer)
+    const remarksBlockHeight = quotation.remarks ? (doc.getTextDimensions(quotation.remarks, { maxWidth: pageWidth - (margin*2) - 80 }).h + 15) : 0;
+    
+    if (y + totalsBlockHeight + remarksBlockHeight > pageHeight - 25) { // Check if it fits on the page (25 is margin for footer)
       doc.addPage();
       y = 20; // Reset to top if new page is added
     }
@@ -187,6 +190,19 @@ export const generateQuotationPdf = (data: QuotationPdfData) => {
     doc.text("Total", totalsLabelX, totalsY);
     doc.text(`Rs. ${totals.total.toFixed(2)}`, totalsX, totalsY, { align: 'right' });
     
+    // --- Remarks Section ---
+    if (quotation.remarks) {
+        y = Math.max(y, totalsY) + 10;
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+        doc.text("Remarks:", margin, y);
+        y += 5;
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(mutedTextColor[0], mutedTextColor[1], mutedTextColor[2]);
+        doc.text(quotation.remarks, margin, y, { maxWidth: pageWidth - (margin * 2) });
+    }
+
     // --- Footer Section ---
     const footerY = pageHeight - 20;
     doc.setFontSize(8);

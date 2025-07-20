@@ -30,6 +30,7 @@ interface BillPdfData {
         dueDate: Date;
         discount: number;
         status: string;
+        remarks?: string | null;
         items: {
             id: number;
             description: string;
@@ -172,7 +173,9 @@ export const generateBillPdf = (data: BillPdfData) => {
 
     // --- Totals Section ---
     const totalsBlockHeight = 50; // Estimated height for totals section
-    if (y + totalsBlockHeight > pageHeight - 25) { // Check if it fits on the page (25 is margin for footer)
+    const remarksBlockHeight = bill.remarks ? (doc.getTextDimensions(bill.remarks, { maxWidth: pageWidth - (margin*2) - 80 }).h + 15) : 0;
+    
+    if (y + totalsBlockHeight + remarksBlockHeight > pageHeight - 25) { // Check if it fits on the page (25 is margin for footer)
       doc.addPage();
       y = 20; // Reset to top if new page is added
     }
@@ -219,6 +222,19 @@ export const generateBillPdf = (data: BillPdfData) => {
     doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
     doc.text("Total", totalsLabelX, totalsY);
     doc.text(`Rs. ${totals.total.toFixed(2)}`, totalsX, totalsY, { align: 'right' });
+
+    // --- Remarks Section ---
+    if (bill.remarks) {
+        y = Math.max(y, totalsY) + 10;
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(textColor[0], textColor[1], textColor[2]);
+        doc.text("Remarks:", margin, y);
+        y += 5;
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(mutedTextColor[0], mutedTextColor[1], mutedTextColor[2]);
+        doc.text(bill.remarks, margin, y, { maxWidth: pageWidth - (margin * 2) });
+    }
     
     // --- Footer Section ---
     const footerY = pageHeight - 20;

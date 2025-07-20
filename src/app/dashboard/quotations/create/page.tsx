@@ -73,6 +73,7 @@ const quotationFormSchema = z.object({
   vatNumber: z.string().optional(),
   quotationDate: z.date({ required_error: "A quotation date is required." }),
   items: z.array(quotationItemSchema).min(1, "At least one item is required"),
+  remarks: z.string().optional(),
 });
 
 export type QuotationFormValues = z.infer<typeof quotationFormSchema>;
@@ -84,6 +85,7 @@ const defaultFormValues: Partial<QuotationFormValues> = {
   panNumber: "",
   vatNumber: "",
   items: [{ description: "", quantity: 1, unit: "Pcs", rate: 0 }],
+  remarks: "",
 };
 
 export default function CreateQuotationPage() {
@@ -233,6 +235,20 @@ export default function CreateQuotationPage() {
                         </div>
                       ))}
                       <Button type="button" variant="outline" onClick={() => append({ description: "", quantity: 1, unit: "Pcs", rate: 0 })}><PlusCircle className="mr-2 h-4 w-4" /> Add Item</Button>
+                  </div>
+                  
+                  <Separator />
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Remarks</h3>
+                    <FormField name="remarks" control={form.control} render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Remarks (Optional)</FormLabel>
+                            <FormControl>
+                                <Textarea {...field} placeholder="Add any additional notes, terms, or conditions here." />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
                   </div>
                 </form>
               </Form>
