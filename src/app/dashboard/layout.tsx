@@ -12,6 +12,7 @@ import {
   FilePenLine,
   FileSearch,
   Users,
+  Wallet,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -44,6 +45,7 @@ const navItems = [
   { href: "/dashboard/bills", icon: FileText, label: "Find Bill" },
   { href: "/dashboard/quotations/create", icon: FilePenLine, label: "Create Quotation" },
   { href: "/dashboard/quotations", icon: FileSearch, label: "Find Quotation" },
+  { href: "/dashboard/expenses", icon: Wallet, label: "Expenses" },
   { href: "/dashboard/attendance", icon: Users, label: "Attendance" },
   { href: "/dashboard/account", icon: User, label: "Account" },
 ];
