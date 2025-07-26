@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { getAttendanceForDate, clockIn, clockOut, updateAttendanceTime } from '@/app/actions/attendance';
+import { getAttendanceForDate, clockIn, clockOut, updateAttendanceTime, markAsAbsent } from '@/app/actions/attendance';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 
@@ -68,6 +68,19 @@ export default function AttendancePage() {
             });
         });
     };
+    
+    const handleMarkAbsent = (employeeId: number) => {
+        startTransition(() => {
+            markAsAbsent(employeeId, date).then(res => {
+                if (res.success) {
+                    toast({ title: "Success", description: res.success });
+                    getAttendanceForDate(date).then(r => r.success && setAttendance(r.data));
+                } else {
+                    toast({ title: "Error", description: res.error, variant: "destructive" });
+                }
+            });
+        });
+    };
 
     const handleTimeChange = (attendanceId: number, type: 'entry' | 'exit', time: string) => {
         startTransition(() => {
@@ -80,6 +93,19 @@ export default function AttendancePage() {
                 }
             })
         })
+    }
+    
+    const getStatusBadge = (status: string) => {
+        switch (status) {
+            case 'Present':
+                return <span className="text-sm text-green-600 font-semibold">Present</span>;
+            case 'Absent':
+                return <span className="text-sm text-red-600 font-semibold">Absent</span>;
+            case 'OnLeave':
+                return <span className="text-sm text-yellow-600 font-semibold">On Leave</span>;
+            default:
+                return null;
+        }
     }
     
     return (
@@ -118,6 +144,7 @@ export default function AttendancePage() {
                             <TableRow>
                                 <TableHead>Employee</TableHead>
                                 <TableHead>Position</TableHead>
+                                <TableHead>Status</TableHead>
                                 <TableHead>Entry Time</TableHead>
                                 <TableHead>Exit Time</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
@@ -128,6 +155,7 @@ export default function AttendancePage() {
                                 <TableRow key={att.employeeId}>
                                     <TableCell className="font-medium">{att.name}</TableCell>
                                     <TableCell>{att.position}</TableCell>
+                                    <TableCell>{getStatusBadge(att.status)}</TableCell>
                                     <TableCell>
                                         {att.entryTime ? (
                                             <Input 
@@ -151,18 +179,25 @@ export default function AttendancePage() {
                                         ) : (att.entryTime ? "Pending" : "N/A")}
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        {!att.entryTime ? (
-                                            <Button size="sm" onClick={() => handleClockIn(att.employeeId)} disabled={isPending}>Clock In</Button>
-                                        ) : !att.exitTime ? (
-                                            <Button size="sm" variant="destructive" onClick={() => att.attendanceId && handleClockOut(att.attendanceId)} disabled={isPending}>Clock Out</Button>
-                                        ) : (
-                                            <span className="text-sm text-green-600 font-semibold">Completed</span>
-                                        )}
+                                       <div className="flex gap-2 justify-end">
+                                            {!att.entryTime && att.status === 'Absent' ? (
+                                                <>
+                                                    <Button size="sm" onClick={() => handleClockIn(att.employeeId)} disabled={isPending}>Clock In</Button>
+                                                </>
+                                            ) : !att.exitTime && att.status === 'Present' ? (
+                                                <Button size="sm" variant="destructive" onClick={() => att.attendanceId && handleClockOut(att.attendanceId)} disabled={isPending}>Clock Out</Button>
+                                            ) : att.status === 'Present' && att.exitTime ? (
+                                                <span className="text-sm text-green-600 font-semibold">Completed</span>
+                                            ) : (
+                                                 <Button size="sm" variant="secondary" onClick={() => handleMarkAbsent(att.employeeId)} disabled={isPending}>Mark Absent</Button>
+                                            )
+                                        }
+                                       </div>
                                     </TableCell>
                                 </TableRow>
                             )) : (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="h-24 text-center">
+                                    <TableCell colSpan={6} className="h-24 text-center">
                                         No employees found. <Link href="/dashboard/attendance/employees" className="text-primary underline">Add an employee</Link> to begin.
                                     </TableCell>
                                 </TableRow>
@@ -174,3 +209,4 @@ export default function AttendancePage() {
         </Card>
     );
 }
+

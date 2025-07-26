@@ -200,6 +200,21 @@ export const updateAttendanceTime = async (attendanceId: number, type: 'entry' |
     }
 };
 
+export const markAsAbsent = async (employeeId: number, date: Date) => {
+    const formattedDate = format(date, 'yyyy-MM-dd');
+    try {
+        await db.query(
+            'INSERT INTO `Attendance` (`employeeId`, `date`, `status`) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE `status` = ?, `entryTime` = NULL, `exitTime` = NULL',
+            [employeeId, formattedDate, 'Absent', 'Absent']
+        );
+        revalidatePath('/dashboard/attendance');
+        return { success: "Marked as absent." };
+    } catch (error) {
+        console.error("Mark as absent failed:", error);
+        return { error: "Database Error: Failed to mark as absent." };
+    }
+};
+
 export const getEmployeeAttendanceReport = async (employeeId: number, year: number, month: number) => {
     try {
         const [employeeRows] = await db.query<RowDataPacket[]>('SELECT `id`, `name` FROM `Employee` WHERE `id` = ?', [employeeId]);
