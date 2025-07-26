@@ -5,6 +5,7 @@ import db from '@/lib/db';
 import * as z from 'zod';
 import { revalidatePath } from 'next/cache';
 import type { RowDataPacket, OkPacket } from 'mysql2';
+import type { ExpenseFormValues } from '@/app/dashboard/expenses/page'; // Import type from client component
 
 // TODO: Replace with authenticated user ID from session
 const getUserId = async () => {
@@ -23,7 +24,7 @@ interface Expense {
     updatedAt: Date;
 }
 
-// Zod schema for validating expense form data
+// Zod schema is now in the page.tsx file
 export const expenseFormSchema = z.object({
   id: z.number().optional(), // For updates
   category: z.string().min(1, "Category is required."),
@@ -32,7 +33,6 @@ export const expenseFormSchema = z.object({
   description: z.string().optional(),
 });
 
-export type ExpenseFormValues = z.infer<typeof expenseFormSchema>;
 
 // Action to get all expenses for the user
 export const getExpenses = async () => {

@@ -6,6 +6,7 @@ import { format } from 'date-fns';
 import { PlusCircle, Wallet, Edit, Trash2, CalendarIcon, Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { Textarea } from '@/components/ui/textarea';
-import { getExpenses, getExpenseStats, upsertExpense, deleteExpense, expenseFormSchema, ExpenseFormValues } from '@/app/actions/expenses';
+import { getExpenses, getExpenseStats, upsertExpense, deleteExpense } from '@/app/actions/expenses';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,6 +32,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+
+// Define schema and types here, in the client component
+export const expenseFormSchema = z.object({
+  id: z.number().optional(), // For updates
+  category: z.string().min(1, "Category is required."),
+  amount: z.coerce.number().min(0.01, "Amount must be greater than 0."),
+  date: z.date({ required_error: "A date for the expense is required." }),
+  description: z.string().optional(),
+});
+
+export type ExpenseFormValues = z.infer<typeof expenseFormSchema>;
+
 
 type Expense = {
   id: number;
