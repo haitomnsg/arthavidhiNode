@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -12,6 +11,7 @@ import {
   User,
   FilePenLine,
   FileSearch,
+  Users,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -44,6 +44,7 @@ const navItems = [
   { href: "/dashboard/bills", icon: FileText, label: "Find Bill" },
   { href: "/dashboard/quotations/create", icon: FilePenLine, label: "Create Quotation" },
   { href: "/dashboard/quotations", icon: FileSearch, label: "Find Quotation" },
+  { href: "/dashboard/attendance", icon: Users, label: "Attendance" },
   { href: "/dashboard/account", icon: User, label: "Account" },
 ];
 
@@ -68,7 +69,7 @@ export default function DashboardLayout({
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
                   asChild
-                  isActive={pathname === item.href}
+                  isActive={pathname.startsWith(item.href) && (item.href !== '/dashboard' || pathname === '/dashboard')}
                   tooltip={item.label}
                 >
                   <Link href={item.href}>
