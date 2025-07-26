@@ -24,8 +24,8 @@ interface Expense {
     updatedAt: Date;
 }
 
-// Zod schema is now in the page.tsx file
-export const expenseFormSchema = z.object({
+// Zod schema defined in the page.tsx file
+const expenseFormSchema = z.object({
   id: z.number().optional(), // For updates
   category: z.string().min(1, "Category is required."),
   amount: z.coerce.number().min(0.01, "Amount must be greater than 0."),
