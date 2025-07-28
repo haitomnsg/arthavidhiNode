@@ -10,6 +10,7 @@ import {
   PlusCircle,
   Save,
   X,
+  RotateCcw,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -46,8 +47,8 @@ import { createBill, getNextInvoiceNumber } from "@/app/actions/bills";
 import { getCompanyDetails } from "@/app/actions/company";
 import { generateBillPdf } from "@/components/bill-pdf-download";
 import { BillPreview } from "@/components/bill-preview";
+import { useAppState } from "@/hooks/use-app-state";
 
-// Define types locally since Prisma types are removed
 interface Company {
   id: number;
   userId: number;
@@ -84,52 +85,29 @@ const billFormSchema = z.object({
 
 export type BillFormValues = z.infer<typeof billFormSchema>;
 
-const defaultFormValues: Partial<BillFormValues> = {
-  clientName: "",
-  clientAddress: "",
-  clientPhone: "",
-  panNumber: "",
-  vatNumber: "",
-  items: [{ description: "", quantity: 1, unit: "Pcs", rate: 0 }],
-  discountType: 'amount',
-  discountAmount: 0,
-  discountPercentage: 0,
-  remarks: "",
-};
-
 export default function CreateBillPage() {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [companyDetails, setCompanyDetails] = useState<Partial<Company>>({});
   const [nextInvoiceNumber, setNextInvoiceNumber] = useState<string>("#INV-PREVIEW");
+  const { billState, setBillState, resetBillState } = useAppState();
 
   const form = useForm<BillFormValues>({
     resolver: zodResolver(billFormSchema),
-    defaultValues: {
-      ...defaultFormValues,
-      billDate: undefined,
-      dueDate: undefined,
-    },
+    values: billState,
   });
 
   useEffect(() => {
     getCompanyDetails().then(setCompanyDetails);
     getNextInvoiceNumber().then(setNextInvoiceNumber);
-    // Set date values on client side to avoid hydration mismatch
-    form.reset({
-        ...defaultFormValues,
-        billDate: new Date(),
-        dueDate: new Date(),
+  }, []);
+
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      setBillState(value as BillFormValues);
     });
-  }, [form]);
-
-
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "items",
-  });
-
-  const billData = form.watch();
+    return () => subscription.unsubscribe();
+  }, [form, setBillState]);
 
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
@@ -143,6 +121,13 @@ export default function CreateBillPage() {
     });
     return () => subscription.unsubscribe();
   }, [form]);
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "items",
+  });
+
+  const billData = form.watch();
 
   const { subtotal, discount, subtotalAfterDiscount, vat, total, appliedDiscountLabel } = useMemo(() => {
     const { items, discountType, discountAmount, discountPercentage } = billData;
@@ -179,6 +164,12 @@ export default function CreateBillPage() {
       appliedDiscountLabel: label,
     };
   }, [billData]);
+  
+  const handleReset = () => {
+      resetBillState();
+      form.reset(billState);
+      toast({ title: "Form Cleared", description: "The bill form has been reset."});
+  }
 
   const onSubmit = (values: BillFormValues) => {
     startTransition(async () => {
@@ -198,6 +189,9 @@ export default function CreateBillPage() {
           title: "Bill Saved",
           description: serverResponse.success,
         });
+        
+        handleReset();
+        getNextInvoiceNumber().then(setNextInvoiceNumber);
 
         try {
             generateBillPdf(serverResponse.data);
@@ -209,13 +203,6 @@ export default function CreateBillPage() {
                 variant: "destructive",
             });
         }
-
-        form.reset({
-            ...defaultFormValues,
-            billDate: new Date(),
-            dueDate: new Date(),
-        });
-        getNextInvoiceNumber().then(setNextInvoiceNumber);
       }
     });
   };
@@ -226,10 +213,17 @@ export default function CreateBillPage() {
         <div className="min-w-0 print:hidden">
           <Card>
             <CardHeader>
-              <CardTitle>Create a New Bill</CardTitle>
-              <CardDescription>
-                Fill in the details below to save a new bill.
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                    <CardTitle>Create a New Bill</CardTitle>
+                    <CardDescription>
+                      Fill in the details below. The form is saved automatically.
+                    </CardDescription>
+                </div>
+                <Button onClick={handleReset} variant="outline" size="sm">
+                    <RotateCcw className="mr-2 h-4 w-4" /> Reset Form
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <Form {...form}>
@@ -251,11 +245,11 @@ export default function CreateBillPage() {
                             <Popover>
                               <PopoverTrigger asChild>
                                 <FormControl>
-                                  <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}</Button>
+                                  <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{field.value ? format(new Date(field.value), "PPP") : <span>Pick a date</span>}</Button>
                                 </FormControl>
                               </PopoverTrigger>
                               <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                <Calendar mode="single" selected={new Date(field.value)} onSelect={field.onChange} initialFocus />
                               </PopoverContent>
                             </Popover>
                             <FormMessage />
@@ -266,11 +260,11 @@ export default function CreateBillPage() {
                             <Popover>
                               <PopoverTrigger asChild>
                                 <FormControl>
-                                  <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}</Button>
+                                  <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{field.value ? format(new Date(field.value), "PPP") : <span>Pick a date</span>}</Button>
                                 </FormControl>
                               </PopoverTrigger>
                               <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                <Calendar mode="single" selected={new Date(field.value)} onSelect={field.onChange} initialFocus />
                               </PopoverContent>
                             </Popover>
                             <FormMessage />

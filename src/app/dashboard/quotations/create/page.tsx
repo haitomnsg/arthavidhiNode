@@ -10,6 +10,7 @@ import {
   PlusCircle,
   X,
   CalendarIcon,
+  RotateCcw,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -45,8 +46,8 @@ import { getCompanyDetails } from "@/app/actions/company";
 import { generateQuotationPdf } from "@/components/quotation-pdf-download";
 import { QuotationPreview } from "@/components/quotation-preview";
 import { createQuotation, getNextQuotationNumber } from "@/app/actions/quotations";
+import { useAppState } from "@/hooks/use-app-state";
 
-// Define types locally
 interface Company {
   id: number;
   userId: number;
@@ -78,39 +79,29 @@ const quotationFormSchema = z.object({
 
 export type QuotationFormValues = z.infer<typeof quotationFormSchema>;
 
-const defaultFormValues: Partial<QuotationFormValues> = {
-  clientName: "",
-  clientAddress: "",
-  clientPhone: "",
-  panNumber: "",
-  vatNumber: "",
-  items: [{ description: "", quantity: 1, unit: "Pcs", rate: 0 }],
-  remarks: "",
-};
-
 export default function CreateQuotationPage() {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [companyDetails, setCompanyDetails] = useState<Partial<Company>>({});
   const [nextQuotationNumber, setNextQuotationNumber] = useState<string>("#QUO-PREVIEW");
+  const { quotationState, setQuotationState, resetQuotationState } = useAppState();
 
   const form = useForm<QuotationFormValues>({
     resolver: zodResolver(quotationFormSchema),
-    defaultValues: {
-        ...defaultFormValues,
-        quotationDate: undefined,
-    },
+    values: quotationState,
   });
   
   useEffect(() => {
     getCompanyDetails().then(setCompanyDetails);
     getNextQuotationNumber().then(setNextQuotationNumber);
-    form.reset({
-        ...defaultFormValues,
-        quotationDate: new Date(),
-    });
-  }, [form]);
+  }, []);
 
+  useEffect(() => {
+    const subscription = form.watch((value) => {
+      setQuotationState(value as QuotationFormValues);
+    });
+    return () => subscription.unsubscribe();
+  }, [form, setQuotationState]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -137,6 +128,12 @@ export default function CreateQuotationPage() {
       total: calculatedTotal,
     };
   }, [quotationData]);
+  
+  const handleReset = () => {
+    resetQuotationState();
+    form.reset(quotationState);
+    toast({ title: "Form Cleared", description: "The quotation form has been reset."});
+  }
 
   const onSubmit = (values: QuotationFormValues) => {
     startTransition(async () => {
@@ -157,6 +154,9 @@ export default function CreateQuotationPage() {
           description: serverResponse.success,
         });
 
+        handleReset();
+        getNextQuotationNumber().then(setNextQuotationNumber);
+
         try {
             generateQuotationPdf(serverResponse.data);
         } catch (pdfError) {
@@ -167,12 +167,6 @@ export default function CreateQuotationPage() {
                 variant: "destructive",
             });
         }
-
-        form.reset({
-            ...defaultFormValues,
-            quotationDate: new Date(),
-        });
-        getNextQuotationNumber().then(setNextQuotationNumber);
       }
     });
   };
@@ -183,10 +177,17 @@ export default function CreateQuotationPage() {
         <div className="min-w-0 print:hidden">
           <Card>
             <CardHeader>
-              <CardTitle>Create a New Quotation</CardTitle>
-              <CardDescription>
-                Fill in the details below to generate a quotation PDF.
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                    <CardTitle>Create a New Quotation</CardTitle>
+                    <CardDescription>
+                      Fill in the details below. The form is saved automatically.
+                    </CardDescription>
+                </div>
+                <Button onClick={handleReset} variant="outline" size="sm">
+                    <RotateCcw className="mr-2 h-4 w-4" /> Reset Form
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <Form {...form}>
@@ -207,11 +208,11 @@ export default function CreateQuotationPage() {
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
-                              <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}</Button>
+                              <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{field.value ? format(new Date(field.value), "PPP") : <span>Pick a date</span>}</Button>
                             </FormControl>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                            <Calendar mode="single" selected={new Date(field.value)} onSelect={field.onChange} initialFocus />
                           </PopoverContent>
                         </Popover>
                         <FormMessage />
