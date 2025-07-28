@@ -104,8 +104,8 @@ export default function AllQuotationsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Find Quotation</CardTitle>
-              <CardDescription>Search and manage your quotations.</CardDescription>
+              <CardTitle>Quotations</CardTitle>
+              <CardDescription>Search, view, and manage your quotations.</CardDescription>
             </div>
             <Button asChild>
               <Link href="/dashboard/quotations/create">

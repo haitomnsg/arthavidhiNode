@@ -6,10 +6,8 @@ import {
   FileText,
   Home,
   LogOut,
-  PlusCircle,
   Settings,
   User,
-  FilePenLine,
   FileSearch,
   Users,
   Wallet,
@@ -37,15 +35,12 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/logo";
-import { cn } from "@/lib/utils";
 import { AppStateProvider } from "@/hooks/use-app-state";
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
-  { href: "/dashboard/bills/create", icon: PlusCircle, label: "Create Bill" },
-  { href: "/dashboard/bills", icon: FileText, label: "Find Bill" },
-  { href: "/dashboard/quotations/create", icon: FilePenLine, label: "Create Quotation" },
-  { href: "/dashboard/quotations", icon: FileSearch, label: "Find Quotation" },
+  { href: "/dashboard/bills", icon: FileText, label: "Bills" },
+  { href: "/dashboard/quotations", icon: FileSearch, label: "Quotations" },
   { href: "/dashboard/expenses", icon: Wallet, label: "Expenses" },
   { href: "/dashboard/attendance", icon: Users, label: "Attendance" },
   { href: "/dashboard/account", icon: User, label: "Account" },
