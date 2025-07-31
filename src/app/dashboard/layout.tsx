@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -12,6 +13,7 @@ import {
   Users,
   Wallet,
   X,
+  PlusCircle,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -46,6 +48,7 @@ import AttendancePage from "./attendance/page";
 import AccountPage from "./account/page";
 import CreateBillPage from "./bills/create/page";
 import CreateQuotationPage from "./quotations/create/page";
+import ManageEmployeesPage from "./attendance/employees/page";
 
 const pageComponents: { [key: string]: React.ComponentType<any> & { title: string; icon: React.ElementType } } = {
   '/dashboard': DashboardPage,
@@ -56,6 +59,7 @@ const pageComponents: { [key: string]: React.ComponentType<any> & { title: strin
   '/dashboard/account': AccountPage,
   '/dashboard/bills/create': CreateBillPage,
   '/dashboard/quotations/create': CreateQuotationPage,
+  '/dashboard/attendance/employees': ManageEmployeesPage,
 };
 
 // Add static properties to page components for metadata
@@ -72,9 +76,11 @@ AttendancePage.icon = Users;
 AccountPage.title = "Account";
 AccountPage.icon = User;
 CreateBillPage.title = "Create Bill";
-CreateBillPage.icon = FileText;
+CreateBillPage.icon = PlusCircle;
 CreateQuotationPage.title = "Create Quotation";
-CreateQuotationPage.icon = FileSearch;
+CreateQuotationPage.icon = PlusCircle;
+ManageEmployeesPage.title = "Manage Employees";
+ManageEmployeesPage.icon = Users;
 
 
 const navItems = [
@@ -195,7 +201,12 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         </div>
 
         <main className="flex-1 p-4 sm:p-6">
-            {ActiveComponent ? <ActiveComponent /> : children}
+            {openTabs.map(tab => (
+              <div key={tab.id} style={{ display: activeTab === tab.id ? 'block' : 'none' }}>
+                {pageComponents[tab.id] && React.createElement(pageComponents[tab.id])}
+              </div>
+            ))}
+            {openTabs.length === 0 && children}
         </main>
       </SidebarInset>
     </SidebarProvider>
@@ -210,3 +221,5 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </AppStateProvider>
   );
 }
+
+    

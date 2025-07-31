@@ -33,6 +33,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { getDashboardData, getBillDetails } from "@/app/actions/bills";
 import { generateBillPdf } from "@/components/bill-pdf-download";
+import { useAppState } from "@/hooks/use-app-state";
 
 type Stats = {
   totalRevenue: number;
@@ -57,6 +58,7 @@ export default function DashboardPage() {
   const [recentBills, setRecentBills] = useState<RecentBill[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
+  const { openTab } = useAppState();
 
   useEffect(() => {
     setIsLoading(true);
@@ -98,6 +100,14 @@ export default function DashboardPage() {
       setDownloadingId(null);
     }
   };
+  
+  const handleCreateBill = () => {
+    openTab({
+      id: '/dashboard/bills/create',
+      title: 'Create Bill',
+      icon: PlusCircle
+    });
+  };
 
   if (isLoading || !stats) {
     return <DashboardSkeleton />;
@@ -136,11 +146,9 @@ export default function DashboardPage() {
               Here's a quick overview of your business.
             </p>
           </div>
-          <Button asChild>
-            <Link href="/dashboard/bills/create">
-              <PlusCircle className="mr-2 h-5 w-5" />
-              Create New Bill
-            </Link>
+          <Button onClick={handleCreateBill}>
+            <PlusCircle className="mr-2 h-5 w-5" />
+            Create New Bill
           </Button>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -306,3 +314,5 @@ function DashboardSkeleton() {
     </div>
   );
 }
+
+    

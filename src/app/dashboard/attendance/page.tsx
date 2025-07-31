@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useTransition } from 'react';
 import { format } from 'date-fns';
-import { Loader2, UserPlus, Users } from 'lucide-react';
+import { Loader2, UserPlus, Users, PlusCircle } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { getAttendanceForDate, clockIn, clockOut, updateAttendanceTime, markAsAbsent } from '@/app/actions/attendance';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
+import { useAppState } from '@/hooks/use-app-state';
 
 type AttendanceData = {
     employeeId: number;
@@ -29,6 +30,7 @@ export default function AttendancePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
+    const { openTab } = useAppState();
 
     useEffect(() => {
         setIsLoading(true);
@@ -42,6 +44,14 @@ export default function AttendancePage() {
             })
             .finally(() => setIsLoading(false));
     }, [date, toast]);
+    
+    const handleManageEmployees = () => {
+        openTab({
+          id: '/dashboard/attendance/employees',
+          title: 'Manage Employees',
+          icon: Users
+        });
+    };
 
     const handleClockIn = (employeeId: number) => {
         startTransition(() => {
@@ -119,10 +129,8 @@ export default function AttendancePage() {
                         </CardDescription>
                     </div>
                     <div className="flex gap-2">
-                        <Button asChild variant="outline">
-                            <Link href="/dashboard/attendance/employees">
-                                <Users className="mr-2 h-4 w-4" /> Manage Employees
-                            </Link>
+                        <Button onClick={handleManageEmployees} variant="outline">
+                            <Users className="mr-2 h-4 w-4" /> Manage Employees
                         </Button>
                         <Input
                             type="date"
@@ -198,7 +206,7 @@ export default function AttendancePage() {
                             )) : (
                                 <TableRow>
                                     <TableCell colSpan={6} className="h-24 text-center">
-                                        No employees found. <Link href="/dashboard/attendance/employees" className="text-primary underline">Add an employee</Link> to begin.
+                                        No employees found. <a onClick={handleManageEmployees} className="text-primary underline cursor-pointer">Add an employee</a> to begin.
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -210,3 +218,4 @@ export default function AttendancePage() {
     );
 }
 
+    

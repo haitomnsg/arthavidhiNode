@@ -88,7 +88,7 @@ export default function CreateQuotationPage() {
 
   const form = useForm<QuotationFormValues>({
     resolver: zodResolver(quotationFormSchema),
-    values: quotationState,
+    values: quotationState.form,
   });
   
   useEffect(() => {
@@ -98,7 +98,7 @@ export default function CreateQuotationPage() {
 
   useEffect(() => {
     const subscription = form.watch((value) => {
-      setQuotationState(value as QuotationFormValues);
+      setQuotationState({ form: value as QuotationFormValues });
     });
     return () => subscription.unsubscribe();
   }, [form, setQuotationState]);
@@ -130,8 +130,8 @@ export default function CreateQuotationPage() {
   }, [quotationData]);
   
   const handleReset = () => {
-    resetQuotationState();
-    form.reset(quotationState);
+    const defaultState = resetQuotationState();
+    form.reset(defaultState.form);
     toast({ title: "Form Cleared", description: "The quotation form has been reset."});
   }
 
@@ -283,3 +283,5 @@ export default function CreateQuotationPage() {
     </>
   );
 }
+
+    

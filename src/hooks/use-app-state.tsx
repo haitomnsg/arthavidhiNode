@@ -1,9 +1,10 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import type { BillFormValues } from '@/app/dashboard/bills/create/page';
 import type { QuotationFormValues } from '@/app/dashboard/quotations/create/page';
+import { Home } from 'lucide-react';
 
 // Define default state structures
 const defaultBillState: BillFormValues = {
@@ -40,12 +41,12 @@ interface Tab {
 
 // Define the shape of the context state
 interface AppStateContextType {
-  billState: BillFormValues;
-  setBillState: (state: BillFormValues) => void;
-  resetBillState: () => void;
-  quotationState: QuotationFormValues;
-  setQuotationState: (state: QuotationFormValues) => void;
-  resetQuotationState: () => void;
+  billState: { form: BillFormValues };
+  setBillState: (state: { form: BillFormValues }) => void;
+  resetBillState: () => { form: BillFormValues };
+  quotationState: { form: QuotationFormValues };
+  setQuotationState: (state: { form: QuotationFormValues }) => void;
+  resetQuotationState: () => { form: QuotationFormValues };
   // Tab state
   openTabs: Tab[];
   activeTab: string | null;
@@ -59,21 +60,13 @@ const AppStateContext = createContext<AppStateContextType | undefined>(undefined
 
 // Create a provider component
 export function AppStateProvider({ children }: { children: ReactNode }) {
-  const [billState, setBillState] = useState<BillFormValues>(defaultBillState);
-  const [quotationState, setQuotationState] = useState<QuotationFormValues>(defaultQuotationState);
+  const [billState, setBillState] = useState({ form: defaultBillState });
+  const [quotationState, setQuotationState] = useState({ form: defaultQuotationState });
 
   const [openTabs, setOpenTabs] = useState<Tab[]>([]);
   const [activeTab, setActiveTab] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Open dashboard tab by default
-    openTab({ id: '/dashboard', title: 'Dashboard', icon: () => null });
-  }, []);
-
-  const resetBillState = () => setBillState(defaultBillState);
-  const resetQuotationState = () => setQuotationState(defaultQuotationState);
-
-  const openTab = (tab: Tab) => {
+  const openTab = useCallback((tab: Tab) => {
     setOpenTabs(prevTabs => {
       if (prevTabs.find(t => t.id === tab.id)) {
         return prevTabs;
@@ -81,22 +74,47 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       return [...prevTabs, tab];
     });
     setActiveTab(tab.id);
-  };
-  
+  }, []);
+
+  useEffect(() => {
+    // Open dashboard tab by default if no tabs are open
+    if (openTabs.length === 0) {
+        openTab({ id: '/dashboard', title: 'Dashboard', icon: Home });
+    }
+  }, [openTabs.length, openTab]);
+
+  const resetBillState = useCallback(() => {
+    setBillState({ form: defaultBillState });
+    return { form: defaultBillState };
+  }, []);
+
+  const resetQuotationState = useCallback(() => {
+    setQuotationState({ form: defaultQuotationState });
+    return { form: defaultQuotationState };
+  }, []);
+
   const closeTab = (tabId: string) => {
+    // Reset state if it's a creation tab
+    if (tabId === '/dashboard/bills/create') {
+        resetBillState();
+    }
+    if (tabId === '/dashboard/quotations/create') {
+        resetQuotationState();
+    }
+    
     setOpenTabs(prevTabs => {
       const tabIndex = prevTabs.findIndex(t => t.id === tabId);
       if (tabIndex === -1) return prevTabs;
 
       const newTabs = prevTabs.filter(t => t.id !== tabId);
       
-      // If the closed tab was the active one, set a new active tab
       if (activeTab === tabId) {
         if (newTabs.length > 0) {
-          // Set to the previous tab or the first one
           setActiveTab(newTabs[Math.max(0, tabIndex - 1)].id);
         } else {
           setActiveTab(null);
+           // If all tabs are closed, open the dashboard
+           openTab({ id: '/dashboard', title: 'Dashboard', icon: Home });
         }
       }
       return newTabs;
@@ -132,3 +150,5 @@ export function useAppState() {
   }
   return context;
 }
+
+    

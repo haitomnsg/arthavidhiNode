@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useTransition } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { Eye, Loader2, PlusCircle, UserPlus, ArrowLeft } from 'lucide-react';
+import { Eye, Loader2, PlusCircle, UserPlus, ArrowLeft, Users } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -47,6 +47,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { addEmployee, getAllEmployees } from '@/app/actions/attendance';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAppState } from '@/hooks/use-app-state';
 
 type Employee = {
     id: number;
@@ -70,6 +71,16 @@ export default function ManageEmployeesPage() {
     const [isLoading, setIsLoading] = useState(true);
     const { toast } = useToast();
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const { openTab, setActiveTab } = useAppState();
+
+    const handleBackToAttendance = () => {
+        openTab({
+          id: '/dashboard/attendance',
+          title: 'Attendance',
+          icon: Users,
+        });
+        setActiveTab('/dashboard/attendance');
+    };
 
     useEffect(() => {
         setIsLoading(true);
@@ -91,8 +102,8 @@ export default function ManageEmployeesPage() {
                         <CardDescription>Add, view, and manage your employees.</CardDescription>
                     </div>
                      <div className="flex gap-2">
-                        <Button asChild variant="outline">
-                            <Link href="/dashboard/attendance"><ArrowLeft className="mr-2 h-4 w-4" />Back to Attendance</Link>
+                        <Button onClick={handleBackToAttendance} variant="outline">
+                            <ArrowLeft className="mr-2 h-4 w-4" />Back to Attendance
                         </Button>
                         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
                             <DialogTrigger asChild>
@@ -247,3 +258,5 @@ function TableSkeleton() {
     </div>
   );
 }
+
+    

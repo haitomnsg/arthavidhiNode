@@ -94,7 +94,7 @@ export default function CreateBillPage() {
 
   const form = useForm<BillFormValues>({
     resolver: zodResolver(billFormSchema),
-    values: billState,
+    values: billState.form,
   });
 
   useEffect(() => {
@@ -104,7 +104,7 @@ export default function CreateBillPage() {
 
   useEffect(() => {
     const subscription = form.watch((value) => {
-      setBillState(value as BillFormValues);
+      setBillState({ form: value as BillFormValues });
     });
     return () => subscription.unsubscribe();
   }, [form, setBillState]);
@@ -166,8 +166,8 @@ export default function CreateBillPage() {
   }, [billData]);
   
   const handleReset = () => {
-      resetBillState();
-      form.reset(billState);
+      const defaultState = resetBillState();
+      form.reset(defaultState.form);
       toast({ title: "Form Cleared", description: "The bill form has been reset."});
   }
 
@@ -409,3 +409,5 @@ export default function CreateBillPage() {
     </>
   );
 }
+
+    
