@@ -2,9 +2,8 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useTransition } from "react";
-import Link from "next/link";
 import { format } from "date-fns";
-import { Download, Eye, PlusCircle, Search, Loader2 } from "lucide-react";
+import { Download, Eye, PlusCircle, Search, Loader2, FileText } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -103,6 +102,15 @@ export default function BillsPage() {
     }
   };
   
+  const handleViewBill = (bill: Bill) => {
+    openTab({
+        id: `/dashboard/bills/${bill.id}`,
+        title: `Invoice #${bill.invoiceNumber}`,
+        icon: FileText,
+        props: { params: { billId: bill.id } }
+    });
+  };
+
   return (
     <TooltipProvider>
       <Card>
@@ -198,10 +206,8 @@ export default function BillsPage() {
                           </Tooltip>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button variant="ghost" size="icon" asChild>
-                                  <Link href={`/dashboard/bills/${bill.id}`} target="_blank">
+                              <Button variant="ghost" size="icon" onClick={() => handleViewBill(bill)}>
                                     <Eye className="h-4 w-4 text-primary" />
-                                  </Link>
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>

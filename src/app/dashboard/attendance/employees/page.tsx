@@ -2,9 +2,8 @@
 "use client";
 
 import React, { useState, useEffect, useTransition } from 'react';
-import Link from 'next/link';
 import { format } from 'date-fns';
-import { Eye, Loader2, PlusCircle, UserPlus, ArrowLeft, Users } from 'lucide-react';
+import { Eye, Loader2, UserPlus, ArrowLeft, Users, CalendarClock } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -93,6 +92,15 @@ export default function ManageEmployeesPage() {
             }
         }).finally(() => setIsLoading(false));
     }, [toast]);
+    
+    const handleViewReport = (employee: Employee) => {
+        openTab({
+            id: `/dashboard/attendance/employees/${employee.id}`,
+            title: `Report: ${employee.name}`,
+            icon: CalendarClock,
+            props: { params: { employeeId: employee.id } }
+        });
+    };
 
     return (
         <Card>
@@ -146,10 +154,8 @@ export default function ManageEmployeesPage() {
                                     <TableCell>{employee.phone}</TableCell>
                                     <TableCell>{format(new Date(employee.createdAt), 'PP')}</TableCell>
                                     <TableCell className="text-center">
-                                        <Button variant="ghost" size="icon" asChild>
-                                          <Link href={`/dashboard/attendance/employees/${employee.id}`} target="_blank">
+                                        <Button variant="ghost" size="icon" onClick={() => handleViewReport(employee)}>
                                             <Eye className="h-4 w-4 text-primary" />
-                                          </Link>
                                         </Button>
                                     </TableCell>
                                 </TableRow>

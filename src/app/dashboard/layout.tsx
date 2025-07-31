@@ -15,6 +15,7 @@ import {
   Wallet,
   X,
   PlusCircle,
+  CalendarClock,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -54,43 +55,53 @@ import CreateQuotationPage from "./quotations/create/page";
 import ManageEmployeesPage from "./attendance/employees/page";
 import EmployeeReportPage from "./attendance/employees/[employeeId]/page";
 
-const pageComponents: { [key: string]: React.ComponentType<any> & { title?: string; icon?: React.ElementType, isDynamic?: boolean } } = {
-  '/dashboard': DashboardPage,
-  '/dashboard/bills': BillsPage,
-  '/dashboard/bills/create': CreateBillPage,
-  '/dashboard/bills/[billId]': ViewBillPage,
-  '/dashboard/quotations': QuotationsPage,
-  '/dashboard/quotations/create': CreateQuotationPage,
-  '/dashboard/quotations/[quotationId]': ViewQuotationPage,
-  '/dashboard/expenses': ExpensesPage,
-  '/dashboard/attendance': AttendancePage,
-  '/dashboard/attendance/employees': ManageEmployeesPage,
-  '/dashboard/attendance/employees/[employeeId]': EmployeeReportPage,
-  '/dashboard/account': AccountPage,
-};
+// Helper function to create a component map
+const createPageMap = () => {
+    const map: { [key: string]: React.ComponentType<any> & { title?: string; icon?: React.ElementType, isDynamic?: boolean, getTitle?: (props: any) => string; } } = {
+        '/dashboard': DashboardPage,
+        '/dashboard/bills': BillsPage,
+        '/dashboard/bills/create': CreateBillPage,
+        '/dashboard/quotations': QuotationsPage,
+        '/dashboard/quotations/create': CreateQuotationPage,
+        '/dashboard/expenses': ExpensesPage,
+        '/dashboard/attendance': AttendancePage,
+        '/dashboard/attendance/employees': ManageEmployeesPage,
+        '/dashboard/account': AccountPage,
+    };
 
-// Add static properties to page components for metadata
-DashboardPage.title = "Dashboard";
-DashboardPage.icon = Home;
-BillsPage.title = "Bills";
-BillsPage.icon = FileText;
-QuotationsPage.title = "Quotations";
-QuotationsPage.icon = FileSearch;
-ExpensesPage.title = "Expenses";
-ExpensesPage.icon = Wallet;
-AttendancePage.title = "Attendance";
-AttendancePage.icon = Users;
-AccountPage.title = "Account";
-AccountPage.icon = User;
-CreateBillPage.title = "Create Bill";
-CreateBillPage.icon = PlusCircle;
-CreateQuotationPage.title = "Create Quotation";
-CreateQuotationPage.icon = PlusCircle;
-ManageEmployeesPage.title = "Manage Employees";
-ManageEmployeesPage.icon = Users;
-ViewBillPage.isDynamic = true;
-ViewQuotationPage.isDynamic = true;
-EmployeeReportPage.isDynamic = true;
+    // Add dynamic routes with placeholder components
+    map['/dashboard/bills/[billId]'] = ViewBillPage;
+    map['/dashboard/quotations/[quotationId]'] = ViewQuotationPage;
+    map['/dashboard/attendance/employees/[employeeId]'] = EmployeeReportPage;
+    
+    // Add metadata
+    DashboardPage.title = "Dashboard";
+    DashboardPage.icon = Home;
+    BillsPage.title = "Bills";
+    BillsPage.icon = FileText;
+    QuotationsPage.title = "Quotations";
+    QuotationsPage.icon = FileSearch;
+    ExpensesPage.title = "Expenses";
+    ExpensesPage.icon = Wallet;
+    AttendancePage.title = "Attendance";
+    AttendancePage.icon = Users;
+    AccountPage.title = "Account";
+    AccountPage.icon = User;
+    CreateBillPage.title = "Create Bill";
+    CreateBillPage.icon = PlusCircle;
+    CreateQuotationPage.title = "Create Quotation";
+    CreateQuotationPage.icon = PlusCircle;
+    ManageEmployeesPage.title = "Manage Employees";
+    ManageEmployeesPage.icon = Users;
+    
+    ViewBillPage.isDynamic = true;
+    ViewQuotationPage.isDynamic = true;
+    EmployeeReportPage.isDynamic = true;
+
+    return map;
+}
+
+const pageComponents = createPageMap();
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
@@ -104,6 +115,7 @@ const navItems = [
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const { openTabs, activeTab, openTab, closeTab, setActiveTab } = useAppState();
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleNavClick = (e: React.MouseEvent, href: string) => {
     e.preventDefault();
@@ -117,9 +129,15 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         });
     }
   };
-  
-  const ActiveComponent = activeTab ? pageComponents[activeTab] : null;
 
+  const getPageKeyForPath = (path: string) => {
+      if (pageComponents[path]) return path;
+      if (path.startsWith('/dashboard/bills/')) return '/dashboard/bills/[billId]';
+      if (path.startsWith('/dashboard/quotations/')) return '/dashboard/quotations/[quotationId]';
+      if (path.startsWith('/dashboard/attendance/employees/')) return '/dashboard/attendance/employees/[employeeId]';
+      return null;
+  }
+  
   return (
     <SidebarProvider>
       <Sidebar className="print:hidden">
@@ -212,11 +230,14 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
         <main className="flex-1 p-4 sm:p-6">
             {openTabs.map(tab => {
-              const PageComponent = pageComponents[tab.id];
+              const pageKey = getPageKeyForPath(tab.id);
+              if (!pageKey) return null;
+              
+              const PageComponent = pageComponents[pageKey];
 
               return(
                 <div key={tab.id} style={{ display: activeTab === tab.id ? 'block' : 'none' }}>
-                    {PageComponent && React.createElement(PageComponent)}
+                    {PageComponent && React.createElement(PageComponent, tab.props)}
                 </div>
               )
             })}
@@ -229,41 +250,6 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
 
 export default function DashboardLayout({ children }: { children: React.ReactNode; }) {
-  // The dynamic pages are now handled inside the RootLayout for the dashboard
-  // so we don't need to pass them down as children to the AppStateProvider specifically.
-  // The layout will handle rendering the correct page based on the active tab.
-  
-  const pathname = usePathname();
-
-  const isDynamicPage = (path: string) => {
-    return /\/dashboard\/(bills|quotations|attendance\/employees)\/\d+/.test(path);
-  }
-
-  if (isDynamicPage(pathname)) {
-    let Component;
-    const props: { params?: { billId?: number, quotationId?: number, employeeId?: number }} = {};
-
-    if (pathname.includes('/dashboard/bills/')) {
-      Component = ViewBillPage;
-      props.params = { billId: parseInt(pathname.split('/').pop()!) };
-    } else if (pathname.includes('/dashboard/quotations/')) {
-      Component = ViewQuotationPage;
-       props.params = { quotationId: parseInt(pathname.split('/').pop()!) };
-    } else if (pathname.includes('/dashboard/attendance/employees/')) {
-      Component = EmployeeReportPage;
-      props.params = { employeeId: parseInt(pathname.split('/').pop()!) };
-    }
-    
-    if (Component) {
-      // Render dynamic pages outside the main tabbed layout for simplicity
-      return (
-        <div className="flex-1 p-4 sm:p-6">
-          <Component {...props} />
-        </div>
-      );
-    }
-  }
-
   return (
     <AppStateProvider>
         <DashboardLayoutContent>{children}</DashboardLayoutContent>

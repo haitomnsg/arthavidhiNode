@@ -2,7 +2,6 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import Link from "next/link";
 import { format } from "date-fns";
 import { Download, Eye, PlusCircle, Search, Loader2, FileSearch } from "lucide-react";
 
@@ -99,6 +98,15 @@ export default function QuotationsPage() {
       setDownloadingId(null);
     }
   };
+  
+  const handleViewQuotation = (quotation: Quotation) => {
+    openTab({
+      id: `/dashboard/quotations/${quotation.id}`,
+      title: `Quote #${quotation.quotationNumber}`,
+      icon: FileSearch,
+      props: { params: { quotationId: quotation.id } }
+    });
+  };
 
   return (
     <TooltipProvider>
@@ -172,10 +180,8 @@ export default function QuotationsPage() {
                           </Tooltip>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button variant="ghost" size="icon" asChild>
-                                <Link href={`/dashboard/quotations/${quotation.id}`} target="_blank">
+                              <Button variant="ghost" size="icon" onClick={() => handleViewQuotation(quotation)}>
                                   <Eye className="h-4 w-4 text-primary" />
-                                </Link>
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>
