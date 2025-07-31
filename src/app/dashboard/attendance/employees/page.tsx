@@ -93,15 +93,6 @@ export default function ManageEmployeesPage() {
             }
         }).finally(() => setIsLoading(false));
     }, [toast]);
-    
-    const handleViewReport = (employee: Employee) => {
-        openTab({
-            id: `/dashboard/attendance/employees/${employee.id}`,
-            title: `Report: ${employee.name}`,
-            icon: Eye,
-            props: { params: { employeeId: employee.id } }
-        });
-    };
 
     return (
         <Card>
@@ -155,8 +146,10 @@ export default function ManageEmployeesPage() {
                                     <TableCell>{employee.phone}</TableCell>
                                     <TableCell>{format(new Date(employee.createdAt), 'PP')}</TableCell>
                                     <TableCell className="text-center">
-                                        <Button variant="ghost" size="icon" onClick={() => handleViewReport(employee)}>
+                                        <Button variant="ghost" size="icon" asChild>
+                                          <Link href={`/dashboard/attendance/employees/${employee.id}`} target="_blank">
                                             <Eye className="h-4 w-4 text-primary" />
+                                          </Link>
                                         </Button>
                                     </TableCell>
                                 </TableRow>

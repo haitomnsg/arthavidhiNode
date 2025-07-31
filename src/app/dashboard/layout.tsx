@@ -212,18 +212,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
         <main className="flex-1 p-4 sm:p-6">
             {openTabs.map(tab => {
-              const route = tab.id.split('?')[0]; // Get route without query params
-              const Component = pageComponents[route.replace(/\[.*?\]/, '[billId]').replace(/\[.*?\]/, '[quotationId]').replace(/\[.*?\]/, '[employeeId]')];
-              
-              if(pageComponents[route] && pageComponents[route].isDynamic) {
-                 const Component = pageComponents[route];
-                 return (
-                    <div key={tab.id} style={{ display: activeTab === tab.id ? 'block' : 'none' }}>
-                      {Component && React.createElement(Component, tab.props)}
-                    </div>
-                 )
-              }
-               const PageComponent = pageComponents[tab.id];
+              const PageComponent = pageComponents[tab.id];
 
               return(
                 <div key={tab.id} style={{ display: activeTab === tab.id ? 'block' : 'none' }}>
@@ -240,6 +229,41 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
 
 export default function DashboardLayout({ children }: { children: React.ReactNode; }) {
+  // The dynamic pages are now handled inside the RootLayout for the dashboard
+  // so we don't need to pass them down as children to the AppStateProvider specifically.
+  // The layout will handle rendering the correct page based on the active tab.
+  
+  const pathname = usePathname();
+
+  const isDynamicPage = (path: string) => {
+    return /\/dashboard\/(bills|quotations|attendance\/employees)\/\d+/.test(path);
+  }
+
+  if (isDynamicPage(pathname)) {
+    let Component;
+    const props: { params?: { billId?: number, quotationId?: number, employeeId?: number }} = {};
+
+    if (pathname.includes('/dashboard/bills/')) {
+      Component = ViewBillPage;
+      props.params = { billId: parseInt(pathname.split('/').pop()!) };
+    } else if (pathname.includes('/dashboard/quotations/')) {
+      Component = ViewQuotationPage;
+       props.params = { quotationId: parseInt(pathname.split('/').pop()!) };
+    } else if (pathname.includes('/dashboard/attendance/employees/')) {
+      Component = EmployeeReportPage;
+      props.params = { employeeId: parseInt(pathname.split('/').pop()!) };
+    }
+    
+    if (Component) {
+      // Render dynamic pages outside the main tabbed layout for simplicity
+      return (
+        <div className="flex-1 p-4 sm:p-6">
+          <Component {...props} />
+        </div>
+      );
+    }
+  }
+
   return (
     <AppStateProvider>
         <DashboardLayoutContent>{children}</DashboardLayoutContent>

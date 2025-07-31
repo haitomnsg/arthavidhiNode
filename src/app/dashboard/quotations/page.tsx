@@ -100,15 +100,6 @@ export default function QuotationsPage() {
     }
   };
 
-  const handleViewQuotation = (quotation: Quotation) => {
-    openTab({
-        id: `/dashboard/quotations/${quotation.id}`,
-        title: `Quote #${quotation.quotationNumber}`,
-        icon: FileSearch,
-        props: { params: { quotationId: quotation.id } }
-    });
-  };
-
   return (
     <TooltipProvider>
       <Card>
@@ -181,8 +172,10 @@ export default function QuotationsPage() {
                           </Tooltip>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button variant="ghost" size="icon" onClick={() => handleViewQuotation(quotation)}>
+                              <Button variant="ghost" size="icon" asChild>
+                                <Link href={`/dashboard/quotations/${quotation.id}`} target="_blank">
                                   <Eye className="h-4 w-4 text-primary" />
+                                </Link>
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>

@@ -103,15 +103,6 @@ export default function BillsPage() {
     }
   };
   
-  const handleViewBill = (bill: Bill) => {
-    openTab({
-        id: `/dashboard/bills/${bill.id}`,
-        title: `Invoice #${bill.invoiceNumber}`,
-        icon: FileText,
-        props: { params: { billId: bill.id } }
-    });
-  };
-
   return (
     <TooltipProvider>
       <Card>
@@ -207,8 +198,10 @@ export default function BillsPage() {
                           </Tooltip>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button variant="ghost" size="icon" onClick={() => handleViewBill(bill)}>
-                                  <Eye className="h-4 w-4 text-primary" />
+                              <Button variant="ghost" size="icon" asChild>
+                                  <Link href={`/dashboard/bills/${bill.id}`} target="_blank">
+                                    <Eye className="h-4 w-4 text-primary" />
+                                  </Link>
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>

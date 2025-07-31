@@ -105,7 +105,8 @@ export default function DashboardPage() {
     openTab({
       id: '/dashboard/bills/create',
       title: 'Create Bill',
-      icon: PlusCircle
+      icon: PlusCircle,
+      props: {}
     });
   };
 
@@ -231,7 +232,7 @@ export default function DashboardPage() {
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button variant="ghost" size="icon" asChild>
-                                <Link href={`/dashboard/bills/${bill.id}`}>
+                                <Link href={`/dashboard/bills/${bill.id}`} target="_blank">
                                   <Eye className="h-4 w-4 text-primary" />
                                 </Link>
                               </Button>
@@ -314,5 +315,3 @@ function DashboardSkeleton() {
     </div>
   );
 }
-
-    
