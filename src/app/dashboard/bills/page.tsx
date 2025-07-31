@@ -102,6 +102,15 @@ export default function BillsPage() {
       setDownloadingId(null);
     }
   };
+  
+  const handleViewBill = (bill: Bill) => {
+    openTab({
+        id: `/dashboard/bills/${bill.id}`,
+        title: `Invoice #${bill.invoiceNumber}`,
+        icon: FileText,
+        props: { params: { billId: bill.id } }
+    });
+  };
 
   return (
     <TooltipProvider>
@@ -112,7 +121,7 @@ export default function BillsPage() {
               <CardTitle>Bills</CardTitle>
               <CardDescription>Search, view, and manage your bills.</CardDescription>
             </div>
-            <Button onClick={() => openTab({ id: '/dashboard/bills/create', title: 'Create Bill', icon: PlusCircle })}>
+            <Button onClick={() => openTab({ id: '/dashboard/bills/create', title: 'Create Bill', icon: PlusCircle, props: {} })}>
                 <PlusCircle className="mr-2 h-4 w-4" /> Create Bill
             </Button>
           </div>
@@ -198,10 +207,8 @@ export default function BillsPage() {
                           </Tooltip>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button variant="ghost" size="icon" asChild>
-                                <Link href={`/dashboard/bills/${bill.id}`}>
+                              <Button variant="ghost" size="icon" onClick={() => handleViewBill(bill)}>
                                   <Eye className="h-4 w-4 text-primary" />
-                                </Link>
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>

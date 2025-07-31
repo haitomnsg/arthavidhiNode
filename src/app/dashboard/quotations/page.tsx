@@ -4,7 +4,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { Download, Eye, PlusCircle, Search, Loader2 } from "lucide-react";
+import { Download, Eye, PlusCircle, Search, Loader2, FileSearch } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -100,6 +100,15 @@ export default function QuotationsPage() {
     }
   };
 
+  const handleViewQuotation = (quotation: Quotation) => {
+    openTab({
+        id: `/dashboard/quotations/${quotation.id}`,
+        title: `Quote #${quotation.quotationNumber}`,
+        icon: FileSearch,
+        props: { params: { quotationId: quotation.id } }
+    });
+  };
+
   return (
     <TooltipProvider>
       <Card>
@@ -109,7 +118,7 @@ export default function QuotationsPage() {
               <CardTitle>Quotations</CardTitle>
               <CardDescription>Search, view, and manage your quotations.</CardDescription>
             </div>
-            <Button onClick={() => openTab({ id: '/dashboard/quotations/create', title: 'Create Quotation', icon: PlusCircle })}>
+            <Button onClick={() => openTab({ id: '/dashboard/quotations/create', title: 'Create Quotation', icon: PlusCircle, props: {} })}>
                 <PlusCircle className="mr-2 h-4 w-4" /> Create Quotation
             </Button>
           </div>
@@ -172,10 +181,8 @@ export default function QuotationsPage() {
                           </Tooltip>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button variant="ghost" size="icon" asChild>
-                                <Link href={`/dashboard/quotations/${quotation.id}`}>
+                              <Button variant="ghost" size="icon" onClick={() => handleViewQuotation(quotation)}>
                                   <Eye className="h-4 w-4 text-primary" />
-                                </Link>
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>

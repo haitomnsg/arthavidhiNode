@@ -4,7 +4,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import type { BillFormValues } from '@/app/dashboard/bills/create/page';
 import type { QuotationFormValues } from '@/app/dashboard/quotations/create/page';
-import { Home } from 'lucide-react';
+import { Home, FileText } from 'lucide-react';
 
 // Define default state structures
 const defaultBillState: BillFormValues = {
@@ -37,6 +37,7 @@ interface Tab {
   id: string;
   title: string;
   icon: React.ElementType;
+  props: Record<string, any>;
 }
 
 // Define the shape of the context state
@@ -68,8 +69,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
   const openTab = useCallback((tab: Tab) => {
     setOpenTabs(prevTabs => {
-      if (prevTabs.find(t => t.id === tab.id)) {
-        return prevTabs;
+      const existingTab = prevTabs.find(t => t.id === tab.id);
+      if (existingTab) {
+        // If tab exists, update its props
+        return prevTabs.map(t => t.id === tab.id ? { ...t, ...tab } : t);
       }
       return [...prevTabs, tab];
     });
@@ -79,7 +82,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Open dashboard tab by default if no tabs are open
     if (openTabs.length === 0) {
-        openTab({ id: '/dashboard', title: 'Dashboard', icon: Home });
+        openTab({ id: '/dashboard', title: 'Dashboard', icon: Home, props: {} });
     }
   }, [openTabs.length, openTab]);
 
@@ -114,7 +117,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         } else {
           setActiveTab(null);
            // If all tabs are closed, open the dashboard
-           openTab({ id: '/dashboard', title: 'Dashboard', icon: Home });
+           openTab({ id: '/dashboard', title: 'Dashboard', icon: Home, props: {} });
         }
       }
       return newTabs;
@@ -150,5 +153,3 @@ export function useAppState() {
   }
   return context;
 }
-
-    

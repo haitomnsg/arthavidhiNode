@@ -43,24 +43,30 @@ import { AppStateProvider, useAppState } from "@/hooks/use-app-state";
 import { cn } from "@/lib/utils";
 import DashboardPage from "./page";
 import BillsPage from "./bills/page";
+import ViewBillPage from "./bills/[billId]/page";
 import QuotationsPage from "./quotations/page";
+import ViewQuotationPage from "./quotations/[quotationId]/page";
 import ExpensesPage from "./expenses/page";
 import AttendancePage from "./attendance/page";
 import AccountPage from "./account/page";
 import CreateBillPage from "./bills/create/page";
 import CreateQuotationPage from "./quotations/create/page";
 import ManageEmployeesPage from "./attendance/employees/page";
+import EmployeeReportPage from "./attendance/employees/[employeeId]/page";
 
-const pageComponents: { [key: string]: React.ComponentType<any> & { title: string; icon: React.ElementType } } = {
+const pageComponents: { [key: string]: React.ComponentType<any> & { title?: string; icon?: React.ElementType, isDynamic?: boolean } } = {
   '/dashboard': DashboardPage,
   '/dashboard/bills': BillsPage,
+  '/dashboard/bills/create': CreateBillPage,
+  '/dashboard/bills/[billId]': ViewBillPage,
   '/dashboard/quotations': QuotationsPage,
+  '/dashboard/quotations/create': CreateQuotationPage,
+  '/dashboard/quotations/[quotationId]': ViewQuotationPage,
   '/dashboard/expenses': ExpensesPage,
   '/dashboard/attendance': AttendancePage,
-  '/dashboard/account': AccountPage,
-  '/dashboard/bills/create': CreateBillPage,
-  '/dashboard/quotations/create': CreateQuotationPage,
   '/dashboard/attendance/employees': ManageEmployeesPage,
+  '/dashboard/attendance/employees/[employeeId]': EmployeeReportPage,
+  '/dashboard/account': AccountPage,
 };
 
 // Add static properties to page components for metadata
@@ -82,7 +88,9 @@ CreateQuotationPage.title = "Create Quotation";
 CreateQuotationPage.icon = PlusCircle;
 ManageEmployeesPage.title = "Manage Employees";
 ManageEmployeesPage.icon = Users;
-
+ViewBillPage.isDynamic = true;
+ViewQuotationPage.isDynamic = true;
+EmployeeReportPage.isDynamic = true;
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
@@ -103,8 +111,9 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     if (component) {
         openTab({
             id: href,
-            title: component.title,
-            icon: component.icon,
+            title: component.title || "Page",
+            icon: component.icon || FileText,
+            props: {}
         });
     }
   };
@@ -202,11 +211,26 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         </div>
 
         <main className="flex-1 p-4 sm:p-6">
-            {openTabs.map(tab => (
-              <div key={tab.id} style={{ display: activeTab === tab.id ? 'block' : 'none' }}>
-                {pageComponents[tab.id] && React.createElement(pageComponents[tab.id])}
-              </div>
-            ))}
+            {openTabs.map(tab => {
+              const route = tab.id.split('?')[0]; // Get route without query params
+              const Component = pageComponents[route.replace(/\[.*?\]/, '[billId]').replace(/\[.*?\]/, '[quotationId]').replace(/\[.*?\]/, '[employeeId]')];
+              
+              if(pageComponents[route] && pageComponents[route].isDynamic) {
+                 const Component = pageComponents[route];
+                 return (
+                    <div key={tab.id} style={{ display: activeTab === tab.id ? 'block' : 'none' }}>
+                      {Component && React.createElement(Component, tab.props)}
+                    </div>
+                 )
+              }
+               const PageComponent = pageComponents[tab.id];
+
+              return(
+                <div key={tab.id} style={{ display: activeTab === tab.id ? 'block' : 'none' }}>
+                    {PageComponent && React.createElement(PageComponent)}
+                </div>
+              )
+            })}
             {openTabs.length === 0 && children}
         </main>
       </SidebarInset>

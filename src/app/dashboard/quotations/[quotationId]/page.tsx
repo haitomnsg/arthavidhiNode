@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useTransition, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Download, Loader2, Save, Trash2, ArrowLeft, Pencil } from 'lucide-react';
 
 import { getQuotationDetails, deleteQuotation } from '@/app/actions/quotations';
@@ -29,7 +29,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import Link from 'next/link';
+import { useAppState } from '@/hooks/use-app-state';
 import { QuotationPreview } from '@/components/quotation-preview';
 import { EditQuotationForm } from '@/components/edit-quotation-form';
 
@@ -39,10 +39,10 @@ type QuotationDataType = {
   totals: any;
 };
 
-export default function ViewQuotationPage() {
-  const params = useParams();
+export default function ViewQuotationPage({ params }: { params: { quotationId: number }}) {
   const router = useRouter();
   const { toast } = useToast();
+  const { closeTab, setActiveTab } = useAppState();
   
   const quotationId = Number(params.quotationId);
 
@@ -55,7 +55,7 @@ export default function ViewQuotationPage() {
   const fetchQuotationData = useCallback(() => {
     if (isNaN(quotationId)) {
       toast({ title: "Error", description: "Invalid Quotation ID.", variant: "destructive" });
-      router.push('/dashboard/quotations');
+      closeTab(`/dashboard/quotations/${quotationId}`);
       return;
     }
     setIsLoading(true);
@@ -64,16 +64,20 @@ export default function ViewQuotationPage() {
         setQuotationData(res.data);
       } else {
         toast({ title: "Error", description: res.error || "Failed to fetch quotation details.", variant: "destructive" });
-        router.push('/dashboard/quotations');
+        closeTab(`/dashboard/quotations/${quotationId}`);
       }
     }).finally(() => {
       setIsLoading(false);
     });
-  }, [quotationId, router, toast]);
+  }, [quotationId, toast, closeTab]);
 
   useEffect(() => {
     fetchQuotationData();
   }, [fetchQuotationData]);
+  
+  const handleBack = () => {
+    setActiveTab('/dashboard/quotations');
+  };
 
   const handleDownload = () => {
     if (!quotationData) return;
@@ -92,7 +96,7 @@ export default function ViewQuotationPage() {
       deleteQuotation(quotationId).then(res => {
         if (res.success) {
           toast({ title: "Success", description: res.success });
-          router.push('/dashboard/quotations');
+          closeTab(`/dashboard/quotations/${quotationId}`);
         } else {
           toast({ title: "Error", description: res.error, variant: "destructive" });
         }
@@ -135,11 +139,9 @@ export default function ViewQuotationPage() {
                   <CardTitle>Quotation Details</CardTitle>
                   <CardDescription>Viewing quotation #{quotation.quotationNumber}</CardDescription>
                 </div>
-                <Button variant="outline" asChild>
-                  <Link href="/dashboard/quotations">
-                      <ArrowLeft className="mr-2 h-4 w-4" />
-                      Back to All Quotations
-                  </Link>
+                <Button variant="outline" onClick={handleBack}>
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to All Quotations
                 </Button>
               </div>
             </CardHeader>

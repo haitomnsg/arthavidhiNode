@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useTransition, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Download, Loader2, Save, Trash2, ArrowLeft, Pencil } from 'lucide-react';
 
 import { getBillDetails, updateBillStatus, deleteBill } from '@/app/actions/bills';
@@ -37,7 +37,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import Link from 'next/link';
+import { useAppState } from '@/hooks/use-app-state';
 import { EditBillForm } from '@/components/edit-bill-form';
 
 type BillDataType = {
@@ -46,10 +46,10 @@ type BillDataType = {
   totals: any;
 };
 
-export default function ViewBillPage() {
-  const params = useParams();
+export default function ViewBillPage({ params }: { params: { billId: number }}) {
   const router = useRouter();
   const { toast } = useToast();
+  const { closeTab, setActiveTab, openTab } = useAppState();
   
   const billId = Number(params.billId);
 
@@ -63,7 +63,7 @@ export default function ViewBillPage() {
   const fetchBillData = useCallback(() => {
     if (isNaN(billId)) {
       toast({ title: "Error", description: "Invalid Bill ID.", variant: "destructive" });
-      router.push('/dashboard/bills');
+      closeTab(`/dashboard/bills/${billId}`);
       return;
     }
     setIsLoading(true);
@@ -73,16 +73,20 @@ export default function ViewBillPage() {
         setCurrentStatus(res.data.bill.status);
       } else {
         toast({ title: "Error", description: res.error || "Failed to fetch bill details.", variant: "destructive" });
-        router.push('/dashboard/bills');
+        closeTab(`/dashboard/bills/${billId}`);
       }
     }).finally(() => {
       setIsLoading(false);
     });
-  }, [billId, router, toast]);
+  }, [billId, toast, closeTab]);
 
   useEffect(() => {
     fetchBillData();
   }, [fetchBillData]);
+  
+  const handleBack = () => {
+    setActiveTab('/dashboard/bills');
+  }
 
   const handleDownload = () => {
     if (!billData) return;
@@ -114,7 +118,7 @@ export default function ViewBillPage() {
       deleteBill(billId).then(res => {
         if (res.success) {
           toast({ title: "Success", description: res.success });
-          router.push('/dashboard/bills');
+          closeTab(`/dashboard/bills/${billId}`);
         } else {
           toast({ title: "Error", description: res.error, variant: "destructive" });
         }
@@ -157,11 +161,9 @@ export default function ViewBillPage() {
                   <CardTitle>Invoice Details</CardTitle>
                   <CardDescription>Viewing invoice #{bill.invoiceNumber}</CardDescription>
                 </div>
-                <Button variant="outline" asChild>
-                  <Link href="/dashboard/bills">
-                      <ArrowLeft className="mr-2 h-4 w-4" />
-                      Back to All Bills
-                  </Link>
+                <Button variant="outline" onClick={handleBack}>
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to All Bills
                 </Button>
               </div>
             </CardHeader>

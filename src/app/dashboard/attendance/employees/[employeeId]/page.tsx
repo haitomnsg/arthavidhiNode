@@ -1,8 +1,8 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { format, getDaysInMonth, startOfMonth, addMonths, subMonths } from 'date-fns';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
@@ -17,6 +17,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAppState } from '@/hooks/use-app-state';
 
 type AttendanceReport = {
     employee: { id: number; name: string; };
@@ -29,20 +30,20 @@ type AttendanceReport = {
     }[];
 };
 
-export default function EmployeeReportPage() {
-    const params = useParams();
+export default function EmployeeReportPage({ params }: { params: { employeeId: number }}) {
     const router = useRouter();
+    const { toast } = useToast();
+    const { closeTab } = useAppState();
     const employeeId = Number(params.employeeId);
     
     const [report, setReport] = useState<AttendanceReport | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [currentDate, setCurrentDate] = useState(new Date());
-    const { toast } = useToast();
 
-    useEffect(() => {
+    const fetchReport = useCallback(() => {
         if (isNaN(employeeId)) {
             toast({ title: "Error", description: "Invalid Employee ID.", variant: "destructive" });
-            router.push('/dashboard/attendance/employees');
+            closeTab(`/dashboard/attendance/employees/${employeeId}`);
             return;
         }
         setIsLoading(true);
@@ -52,11 +53,15 @@ export default function EmployeeReportPage() {
                     setReport(res.data);
                 } else {
                     toast({ title: "Error", description: res.error || "Failed to load report", variant: "destructive" });
-                    router.push('/dashboard/attendance/employees');
+                    closeTab(`/dashboard/attendance/employees/${employeeId}`);
                 }
             })
             .finally(() => setIsLoading(false));
-    }, [employeeId, currentDate, router, toast]);
+    }, [employeeId, currentDate, toast, closeTab]);
+
+    useEffect(() => {
+        fetchReport();
+    }, [fetchReport]);
 
     const changeMonth = (amount: number) => {
         setCurrentDate(current => amount > 0 ? addMonths(current, 1) : subMonths(current, 1));
@@ -144,4 +149,3 @@ export default function EmployeeReportPage() {
         </TooltipProvider>
     );
 }
-
