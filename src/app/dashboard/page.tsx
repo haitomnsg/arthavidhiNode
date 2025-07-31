@@ -1,7 +1,6 @@
 
 "use client";
 
-import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { CircleDollarSign, Download, Eye, FileText, PlusCircle, Loader2 } from "lucide-react";
@@ -109,6 +108,16 @@ export default function DashboardPage() {
       props: {}
     });
   };
+
+  const handleViewBill = (bill: RecentBill) => {
+    openTab({
+        id: `/dashboard/bills/${bill.id}`,
+        title: `Invoice #${bill.invoiceNumber}`,
+        icon: FileText,
+        props: { params: { billId: bill.id } }
+    });
+  };
+
 
   if (isLoading || !stats) {
     return <DashboardSkeleton />;
@@ -231,10 +240,8 @@ export default function DashboardPage() {
                           </Tooltip>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Button variant="ghost" size="icon" asChild>
-                                <Link href={`/dashboard/bills/${bill.id}`} target="_blank">
+                              <Button variant="ghost" size="icon" onClick={() => handleViewBill(bill)}>
                                   <Eye className="h-4 w-4 text-primary" />
-                                </Link>
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>

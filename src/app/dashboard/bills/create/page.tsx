@@ -163,7 +163,7 @@ export default function CreateBillPage() {
       total: calculatedTotal,
       appliedDiscountLabel: label,
     };
-  }, [billData]);
+  }, [billData.items, billData.discountType, billData.discountAmount, billData.discountPercentage]);
   
   const handleReset = () => {
       const defaultState = resetBillState();
@@ -409,5 +409,3 @@ export default function CreateBillPage() {
     </>
   );
 }
-
-    

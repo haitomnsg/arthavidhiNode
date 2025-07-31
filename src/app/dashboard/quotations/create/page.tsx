@@ -127,7 +127,7 @@ export default function CreateQuotationPage() {
       vat: calculatedVat,
       total: calculatedTotal,
     };
-  }, [quotationData]);
+  }, [quotationData.items]);
   
   const handleReset = () => {
     const defaultState = resetQuotationState();
@@ -283,5 +283,3 @@ export default function CreateQuotationPage() {
     </>
   );
 }
-
-    
