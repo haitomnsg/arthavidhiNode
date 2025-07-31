@@ -34,6 +34,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { getAllBills, getBillDetails } from "@/app/actions/bills";
 import { generateBillPdf } from "@/components/bill-pdf-download";
+import { useAppState } from "@/hooks/use-app-state";
 
 type Bill = {
   id: number;
@@ -45,12 +46,13 @@ type Bill = {
   amount: number;
 };
 
-export default function AllBillsPage() {
+export default function BillsPage() {
   const { toast } = useToast();
   const [bills, setBills] = useState<Bill[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
+  const { openTab } = useAppState();
 
   useEffect(() => {
     setIsLoading(true);
@@ -110,10 +112,8 @@ export default function AllBillsPage() {
               <CardTitle>Bills</CardTitle>
               <CardDescription>Search, view, and manage your bills.</CardDescription>
             </div>
-            <Button asChild>
-              <Link href="/dashboard/bills/create">
+            <Button onClick={() => openTab({ id: '/dashboard/bills/create', title: 'Create Bill', icon: PlusCircle })}>
                 <PlusCircle className="mr-2 h-4 w-4" /> Create Bill
-              </Link>
             </Button>
           </div>
           <div className="relative mt-4">

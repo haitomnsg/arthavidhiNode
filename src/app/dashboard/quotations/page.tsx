@@ -33,6 +33,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { getAllQuotations, getQuotationDetails } from "@/app/actions/quotations";
 import { generateQuotationPdf } from "@/components/quotation-pdf-download";
+import { useAppState } from "@/hooks/use-app-state";
 
 type Quotation = {
   id: number;
@@ -42,12 +43,13 @@ type Quotation = {
   amount: number;
 };
 
-export default function AllQuotationsPage() {
+export default function QuotationsPage() {
   const { toast } = useToast();
   const [quotations, setQuotations] = useState<Quotation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
+  const { openTab } = useAppState();
 
   useEffect(() => {
     setIsLoading(true);
@@ -107,10 +109,8 @@ export default function AllQuotationsPage() {
               <CardTitle>Quotations</CardTitle>
               <CardDescription>Search, view, and manage your quotations.</CardDescription>
             </div>
-            <Button asChild>
-              <Link href="/dashboard/quotations/create">
+            <Button onClick={() => openTab({ id: '/dashboard/quotations/create', title: 'Create Quotation', icon: PlusCircle })}>
                 <PlusCircle className="mr-2 h-4 w-4" /> Create Quotation
-              </Link>
             </Button>
           </div>
           <div className="relative mt-4">

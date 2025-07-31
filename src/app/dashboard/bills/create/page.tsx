@@ -90,7 +90,7 @@ export default function CreateBillPage() {
   const [isPending, startTransition] = useTransition();
   const [companyDetails, setCompanyDetails] = useState<Partial<Company>>({});
   const [nextInvoiceNumber, setNextInvoiceNumber] = useState<string>("#INV-PREVIEW");
-  const { billState, setBillState, resetBillState } = useAppState();
+  const { billState, setBillState, resetBillState, closeTab } = useAppState();
 
   const form = useForm<BillFormValues>({
     resolver: zodResolver(billFormSchema),
@@ -192,6 +192,7 @@ export default function CreateBillPage() {
         
         handleReset();
         getNextInvoiceNumber().then(setNextInvoiceNumber);
+        closeTab('/dashboard/bills/create');
 
         try {
             generateBillPdf(serverResponse.data);
