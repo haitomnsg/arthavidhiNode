@@ -109,7 +109,7 @@ export default function CreateQuotationPage() {
   const [isPending, startTransition] = useTransition();
   const [companyDetails, setCompanyDetails] = useState<Partial<Company>>({});
   const [nextQuotationNumber, setNextQuotationNumber] = useState<string>("#QUO-PREVIEW");
-  const { quotationState, setQuotationState, resetQuotationState, closeTab } = useAppState();
+  const { quotationState, setQuotationState, resetQuotationState, closeTab, setActiveTab } = useAppState();
 
   const form = useForm<QuotationFormValues>({
     resolver: zodResolver(quotationFormSchema),
@@ -175,9 +175,9 @@ export default function CreateQuotationPage() {
           description: serverResponse.success,
         });
 
-        handleReset();
-        getNextQuotationNumber().then(setNextQuotationNumber);
+        resetQuotationState();
         closeTab('/dashboard/quotations/create');
+        setActiveTab('/dashboard/quotations');
 
         try {
             generateQuotationPdf(serverResponse.data);

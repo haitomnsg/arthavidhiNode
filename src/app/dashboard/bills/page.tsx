@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useMemo, useEffect, useTransition } from "react";
+import React, { useState, useMemo, useEffect, useTransition, useCallback } from "react";
 import { format } from "date-fns";
 import { Download, Eye, PlusCircle, Search, Loader2, FileText } from "lucide-react";
 
@@ -51,9 +51,9 @@ export default function BillsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
-  const { openTab } = useAppState();
+  const { openTab, activeTab } = useAppState();
 
-  useEffect(() => {
+  const fetchBills = useCallback(() => {
     setIsLoading(true);
     getAllBills().then((res) => {
       if (res.success && res.data) {
@@ -68,6 +68,12 @@ export default function BillsPage() {
       setIsLoading(false);
     });
   }, [toast]);
+  
+  useEffect(() => {
+    if (activeTab === '/dashboard/bills') {
+      fetchBills();
+    }
+  }, [activeTab, fetchBills]);
 
   const filteredBills = useMemo(() => {
     if (!searchTerm) return bills;

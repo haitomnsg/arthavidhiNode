@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { format } from "date-fns";
 import { Download, Eye, PlusCircle, Search, Loader2, FileSearch } from "lucide-react";
 
@@ -48,9 +48,9 @@ export default function QuotationsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
-  const { openTab } = useAppState();
+  const { openTab, activeTab } = useAppState();
 
-  useEffect(() => {
+  const fetchQuotations = useCallback(() => {
     setIsLoading(true);
     getAllQuotations().then((res) => {
       if (res.success && res.data) {
@@ -65,6 +65,13 @@ export default function QuotationsPage() {
       setIsLoading(false);
     });
   }, [toast]);
+  
+  useEffect(() => {
+    if (activeTab === '/dashboard/quotations') {
+      fetchQuotations();
+    }
+  }, [activeTab, fetchQuotations]);
+
 
   const filteredQuotations = useMemo(() => {
     if (!searchTerm) return quotations;
