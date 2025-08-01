@@ -1,9 +1,9 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo, useTransition } from "react";
+import React, { useState, useEffect, useMemo, useTransition, useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import * as z from "zod";
 import {
   Save,
@@ -79,6 +79,31 @@ const quotationFormSchema = z.object({
 
 export type QuotationFormValues = z.infer<typeof quotationFormSchema>;
 
+const QuotationItems = ({ control }: { control: any }) => {
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "items",
+  });
+
+  return (
+      <div className="space-y-4">
+         <h3 className="text-lg font-medium">Quotation Items</h3>
+          {fields.map((field, index) => (
+            <div key={field.id} className="flex gap-4 items-end p-4 border rounded-lg relative">
+               <div className="grid grid-cols-1 md:grid-cols-12 gap-4 flex-1">
+                  <FormField name={`items.${index}.description`} control={control} render={({ field }) => (<FormItem className="md:col-span-5"><FormLabel>Description</FormLabel><FormControl><Input {...field} placeholder="Item or service"/></FormControl><FormMessage /></FormItem>)} />
+                  <FormField name={`items.${index}.quantity`} control={control} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Quantity</FormLabel><FormControl><Input type="number" {...field} placeholder="1"/></FormControl><FormMessage /></FormItem>)} />
+                  <FormField name={`items.${index}.unit`} control={control} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Unit</FormLabel><FormControl><Input {...field} placeholder="Pcs"/></FormControl><FormMessage /></FormItem>)} />
+                  <FormField name={`items.${index}.rate`} control={control} render={({ field }) => (<FormItem className="md:col-span-3"><FormLabel>Rate (Rs.)</FormLabel><FormControl><Input type="number" {...field} placeholder="100.00"/></FormControl><FormMessage /></FormItem>)} />
+               </div>
+               <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-muted-foreground hover:text-destructive shrink-0"><X className="h-4 w-4" /></Button>
+            </div>
+          ))}
+          <Button type="button" variant="outline" onClick={() => append({ description: "", quantity: 1, unit: "Pcs", rate: 0 })}><PlusCircle className="mr-2 h-4 w-4" /> Add Item</Button>
+      </div>
+  );
+}
+
 export default function CreateQuotationPage() {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
@@ -88,27 +113,23 @@ export default function CreateQuotationPage() {
 
   const form = useForm<QuotationFormValues>({
     resolver: zodResolver(quotationFormSchema),
-    values: quotationState.form,
+    defaultValues: quotationState.form,
   });
+
+  const handleBlur = useCallback(() => {
+    setQuotationState({ form: form.getValues() });
+  }, [form, setQuotationState]);
+
+  useEffect(() => {
+    form.reset(quotationState.form);
+  }, [quotationState, form]);
   
   useEffect(() => {
     getCompanyDetails().then(setCompanyDetails);
     getNextQuotationNumber().then(setNextQuotationNumber);
   }, []);
 
-  useEffect(() => {
-    const subscription = form.watch((value) => {
-      setQuotationState({ form: value as QuotationFormValues });
-    });
-    return () => subscription.unsubscribe();
-  }, [form, setQuotationState]);
-
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "items",
-  });
-
-  const quotationData = form.watch();
+  const quotationData = useWatch({ control: form.control });
 
   const { subtotal, vat, total } = useMemo(() => {
     const { items } = quotationData;
@@ -127,7 +148,7 @@ export default function CreateQuotationPage() {
       vat: calculatedVat,
       total: calculatedTotal,
     };
-  }, [quotationData.items]);
+  }, [quotationData]);
   
   const handleReset = () => {
     const defaultState = resetQuotationState();
@@ -192,7 +213,7 @@ export default function CreateQuotationPage() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} id="quotation-form" className="space-y-8">
+                <form onSubmit={form.handleSubmit(onSubmit)} onBlur={handleBlur} id="quotation-form" className="space-y-8">
                   <div className="space-y-4">
                     <h3 className="text-lg font-medium">Client Details</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -223,21 +244,7 @@ export default function CreateQuotationPage() {
 
                   <Separator />
 
-                  <div className="space-y-4">
-                     <h3 className="text-lg font-medium">Quotation Items</h3>
-                      {fields.map((field, index) => (
-                        <div key={field.id} className="flex gap-4 items-end p-4 border rounded-lg relative">
-                           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 flex-1">
-                              <FormField name={`items.${index}.description`} control={form.control} render={({ field }) => (<FormItem className="md:col-span-5"><FormLabel>Description</FormLabel><FormControl><Input {...field} placeholder="Item or service"/></FormControl><FormMessage /></FormItem>)} />
-                              <FormField name={`items.${index}.quantity`} control={form.control} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Quantity</FormLabel><FormControl><Input type="number" {...field} placeholder="1"/></FormControl><FormMessage /></FormItem>)} />
-                              <FormField name={`items.${index}.unit`} control={form.control} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Unit</FormLabel><FormControl><Input {...field} placeholder="Pcs"/></FormControl><FormMessage /></FormItem>)} />
-                              <FormField name={`items.${index}.rate`} control={form.control} render={({ field }) => (<FormItem className="md:col-span-3"><FormLabel>Rate (Rs.)</FormLabel><FormControl><Input type="number" {...field} placeholder="100.00"/></FormControl><FormMessage /></FormItem>)} />
-                           </div>
-                           <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-muted-foreground hover:text-destructive shrink-0"><X className="h-4 w-4" /></Button>
-                        </div>
-                      ))}
-                      <Button type="button" variant="outline" onClick={() => append({ description: "", quantity: 1, unit: "Pcs", rate: 0 })}><PlusCircle className="mr-2 h-4 w-4" /> Add Item</Button>
-                  </div>
+                  <QuotationItems control={form.control} />
                   
                   <Separator />
                   <div className="space-y-4">

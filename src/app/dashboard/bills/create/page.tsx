@@ -1,9 +1,9 @@
 
 "use client";
 
-import React, { useTransition, useState, useEffect, useMemo } from "react";
+import React, { useTransition, useState, useEffect, useMemo, useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import * as z from "zod";
 import {
   CalendarIcon,
@@ -85,6 +85,32 @@ const billFormSchema = z.object({
 
 export type BillFormValues = z.infer<typeof billFormSchema>;
 
+const BillItems = ({ control }: { control: any }) => {
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "items",
+  });
+
+  return (
+    <div className="space-y-4">
+       <h3 className="text-lg font-medium">Bill Items</h3>
+        {fields.map((field, index) => (
+          <div key={field.id} className="flex gap-4 items-end p-4 border rounded-lg relative">
+             <div className="grid grid-cols-1 md:grid-cols-12 gap-4 flex-1">
+                <FormField name={`items.${index}.description`} control={control} render={({ field }) => (<FormItem className="md:col-span-5"><FormLabel>Description</FormLabel><FormControl><Input {...field} placeholder="Item or service"/></FormControl><FormMessage /></FormItem>)} />
+                <FormField name={`items.${index}.quantity`} control={control} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Quantity</FormLabel><FormControl><Input type="number" {...field} placeholder="1"/></FormControl><FormMessage /></FormItem>)} />
+                <FormField name={`items.${index}.unit`} control={control} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Unit</FormLabel><FormControl><Input {...field} placeholder="Pcs"/></FormControl><FormMessage /></FormItem>)} />
+                <FormField name={`items.${index}.rate`} control={control} render={({ field }) => (<FormItem className="md:col-span-3"><FormLabel>Rate (Rs.)</FormLabel><FormControl><Input type="number" {...field} placeholder="100.00"/></FormControl><FormMessage /></FormItem>)} />
+             </div>
+             <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-muted-foreground hover:text-destructive shrink-0"><X className="h-4 w-4" /></Button>
+          </div>
+        ))}
+        <Button type="button" variant="outline" onClick={() => append({ description: "", quantity: 1, unit: "Pcs", rate: 0 })}><PlusCircle className="mr-2 h-4 w-4" /> Add Item</Button>
+    </div>
+  );
+}
+
+
 export default function CreateBillPage() {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
@@ -94,20 +120,21 @@ export default function CreateBillPage() {
 
   const form = useForm<BillFormValues>({
     resolver: zodResolver(billFormSchema),
-    values: billState.form,
+    defaultValues: billState.form,
   });
+  
+  const handleBlur = useCallback(() => {
+    setBillState({ form: form.getValues() });
+  }, [form, setBillState]);
+  
+  useEffect(() => {
+    form.reset(billState.form);
+  }, [billState, form]);
 
   useEffect(() => {
     getCompanyDetails().then(setCompanyDetails);
     getNextInvoiceNumber().then(setNextInvoiceNumber);
   }, []);
-
-  useEffect(() => {
-    const subscription = form.watch((value) => {
-      setBillState({ form: value as BillFormValues });
-    });
-    return () => subscription.unsubscribe();
-  }, [form, setBillState]);
 
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
@@ -117,17 +144,13 @@ export default function CreateBillPage() {
         } else {
           form.setValue('discountPercentage', 0);
         }
+        handleBlur();
       }
     });
     return () => subscription.unsubscribe();
-  }, [form]);
+  }, [form, handleBlur]);
 
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "items",
-  });
-
-  const billData = form.watch();
+  const billData = useWatch({ control: form.control });
 
   const { subtotal, discount, subtotalAfterDiscount, vat, total, appliedDiscountLabel } = useMemo(() => {
     const { items, discountType, discountAmount, discountPercentage } = billData;
@@ -163,7 +186,7 @@ export default function CreateBillPage() {
       total: calculatedTotal,
       appliedDiscountLabel: label,
     };
-  }, [billData.items, billData.discountType, billData.discountAmount, billData.discountPercentage]);
+  }, [billData]);
   
   const handleReset = () => {
       const defaultState = resetBillState();
@@ -228,7 +251,7 @@ export default function CreateBillPage() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} id="bill-form" className="space-y-8">
+                <form onSubmit={form.handleSubmit(onSubmit)} onBlur={handleBlur} id="bill-form" className="space-y-8">
                   <div className="space-y-4">
                     <h3 className="text-lg font-medium">Client Details</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -276,21 +299,8 @@ export default function CreateBillPage() {
 
                   <Separator />
 
-                  <div className="space-y-4">
-                     <h3 className="text-lg font-medium">Bill Items</h3>
-                      {fields.map((field, index) => (
-                        <div key={field.id} className="flex gap-4 items-end p-4 border rounded-lg relative">
-                           <div className="grid grid-cols-1 md:grid-cols-12 gap-4 flex-1">
-                              <FormField name={`items.${index}.description`} control={form.control} render={({ field }) => (<FormItem className="md:col-span-5"><FormLabel>Description</FormLabel><FormControl><Input {...field} placeholder="Item or service"/></FormControl><FormMessage /></FormItem>)} />
-                              <FormField name={`items.${index}.quantity`} control={form.control} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Quantity</FormLabel><FormControl><Input type="number" {...field} placeholder="1"/></FormControl><FormMessage /></FormItem>)} />
-                              <FormField name={`items.${index}.unit`} control={form.control} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Unit</FormLabel><FormControl><Input {...field} placeholder="Pcs"/></FormControl><FormMessage /></FormItem>)} />
-                              <FormField name={`items.${index}.rate`} control={form.control} render={({ field }) => (<FormItem className="md:col-span-3"><FormLabel>Rate (Rs.)</FormLabel><FormControl><Input type="number" {...field} placeholder="100.00"/></FormControl><FormMessage /></FormItem>)} />
-                           </div>
-                           <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-muted-foreground hover:text-destructive shrink-0"><X className="h-4 w-4" /></Button>
-                        </div>
-                      ))}
-                      <Button type="button" variant="outline" onClick={() => append({ description: "", quantity: 1, unit: "Pcs", rate: 0 })}><PlusCircle className="mr-2 h-4 w-4" /> Add Item</Button>
-                  </div>
+                  <BillItems control={form.control} />
+                  
                   <Separator />
                   <div className="space-y-4">
                     <h3 className="text-lg font-medium">Discount</h3>
