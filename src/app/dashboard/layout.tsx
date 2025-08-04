@@ -1,9 +1,9 @@
 
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   FileText,
   Home,
@@ -16,6 +16,7 @@ import {
   X,
   PlusCircle,
   CalendarClock,
+  Building,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -54,6 +55,7 @@ import CreateBillPage from "./bills/create/page";
 import CreateQuotationPage from "./quotations/create/page";
 import ManageEmployeesPage from "./attendance/employees/page";
 import EmployeeReportPage from "./attendance/employees/[employeeId]/page";
+import { getCompanyDetails } from "../actions/company";
 
 // Helper function to create a component map
 const createPageMap = () => {
@@ -115,7 +117,13 @@ const navItems = [
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const { openTabs, activeTab, openTab, closeTab, setActiveTab } = useAppState();
   const router = useRouter();
-  const pathname = usePathname();
+  const [companyName, setCompanyName] = useState("Loading...");
+
+  useEffect(() => {
+    getCompanyDetails().then(details => {
+        setCompanyName(details.name || "My Company");
+    })
+  }, []);
 
   const handleNavClick = (e: React.MouseEvent, href: string) => {
     e.preventDefault();
@@ -131,10 +139,20 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   };
 
   const getPageKeyForPath = (path: string) => {
+      const dynamicRoutePatterns = {
+        '/dashboard/bills/[billId]': /^\/dashboard\/bills\/\d+$/,
+        '/dashboard/quotations/[quotationId]': /^\/dashboard\/quotations\/\d+$/,
+        '/dashboard/attendance/employees/[employeeId]': /^\/dashboard\/attendance\/employees\/\d+$/,
+      };
+
       if (pageComponents[path]) return path;
-      if (path.startsWith('/dashboard/bills/')) return '/dashboard/bills/[billId]';
-      if (path.startsWith('/dashboard/quotations/')) return '/dashboard/quotations/[quotationId]';
-      if (path.startsWith('/dashboard/attendance/employees/')) return '/dashboard/attendance/employees/[employeeId]';
+
+      for (const key in dynamicRoutePatterns) {
+          if (dynamicRoutePatterns[key as keyof typeof dynamicRoutePatterns].test(path)) {
+              return key;
+          }
+      }
+
       return null;
   }
   
@@ -167,14 +185,20 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6 print:hidden">
-          <SidebarTrigger />
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-primary px-4 text-primary-foreground sm:px-6 print:hidden">
+          <div className="flex items-center gap-4">
+             <SidebarTrigger className="hover:bg-white/20" />
+             <div className="flex items-center gap-2">
+                <Building className="h-6 w-6" />
+                <span className="text-xl font-semibold">{companyName}</span>
+             </div>
+          </div>
           <div className="flex items-center gap-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar>
-                    <AvatarFallback>
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-white/20">
+                  <Avatar className="h-8 w-8 bg-white/20">
+                    <AvatarFallback className="bg-transparent text-primary-foreground">
                       <User className="h-5 w-5" />
                     </AvatarFallback>
                   </Avatar>
@@ -256,3 +280,5 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </AppStateProvider>
   );
 }
+
+    
