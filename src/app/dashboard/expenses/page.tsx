@@ -1,9 +1,9 @@
 
 "use client";
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect, useTransition, useMemo } from 'react';
 import { format } from 'date-fns';
-import { PlusCircle, Wallet, Edit, Trash2, CalendarIcon, Loader2 } from 'lucide-react';
+import { PlusCircle, Wallet, Edit, Trash2, CalendarIcon, Loader2, Search } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -66,6 +66,7 @@ export default function ExpensesPage() {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
     const { toast } = useToast();
+    const [searchTerm, setSearchTerm] = useState("");
 
     const fetchExpenses = () => {
         setIsLoading(true);
@@ -91,6 +92,14 @@ export default function ExpensesPage() {
         setIsFormOpen(false);
         setSelectedExpense(null);
     }
+    
+    const filteredExpenses = useMemo(() => {
+        if (!searchTerm) return expenses;
+        return expenses.filter(expense => 
+            expense.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (expense.description && expense.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+    }, [searchTerm, expenses]);
 
     return (
         <div className="space-y-6">
@@ -110,9 +119,18 @@ export default function ExpensesPage() {
                 <CardHeader>
                     <CardTitle>All Expenses</CardTitle>
                     <CardDescription>A complete log of your recorded expenses.</CardDescription>
+                    <div className="relative mt-4">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Search by category or description..."
+                          className="pl-9"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
                 </CardHeader>
                 <CardContent>
-                    <ExpenseTable expenses={expenses} isLoading={isLoading} onEdit={handleOpenForm} onDeleted={fetchExpenses} />
+                    <ExpenseTable expenses={filteredExpenses} isLoading={isLoading} onEdit={handleOpenForm} onDeleted={fetchExpenses} />
                 </CardContent>
             </Card>
 
@@ -253,7 +271,7 @@ function ExpenseTable({ expenses, isLoading, onEdit, onDeleted }: { expenses: Ex
                 )) : (
                     <TableRow>
                         <TableCell colSpan={5} className="h-24 text-center">
-                            No expenses recorded yet. Click "Add Expense" to start.
+                            No expenses found.
                         </TableCell>
                     </TableRow>
                 )}
@@ -370,3 +388,5 @@ function ExpenseFormDialog({ isOpen, onClose, onSuccess, expense }: { isOpen: bo
         </Dialog>
     )
 }
+
+    
