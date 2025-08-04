@@ -1,9 +1,9 @@
 
 "use client";
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect, useTransition, useMemo } from 'react';
 import { format } from 'date-fns';
-import { Loader2, UserPlus, Users, PlusCircle } from 'lucide-react';
+import { Loader2, UserPlus, Users, PlusCircle, Search } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,6 +31,7 @@ export default function AttendancePage() {
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
     const { openTab } = useAppState();
+    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
         setIsLoading(true);
@@ -44,6 +45,15 @@ export default function AttendancePage() {
             })
             .finally(() => setIsLoading(false));
     }, [date, toast]);
+
+    const filteredAttendance = useMemo(() => {
+        if (!searchTerm) return attendance;
+        return attendance.filter(
+          (att) =>
+            att.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            att.position.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [searchTerm, attendance]);
     
     const handleManageEmployees = () => {
         openTab({
@@ -140,6 +150,15 @@ export default function AttendancePage() {
                         />
                     </div>
                 </div>
+                 <div className="relative mt-4">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search by employee name or position..."
+                      className="pl-9"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
             </CardHeader>
             <CardContent>
                 {isLoading ? (
@@ -159,7 +178,7 @@ export default function AttendancePage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {attendance.length > 0 ? attendance.map(att => (
+                            {filteredAttendance.length > 0 ? filteredAttendance.map(att => (
                                 <TableRow key={att.employeeId}>
                                     <TableCell className="font-medium">{att.name}</TableCell>
                                     <TableCell>{att.position}</TableCell>
@@ -217,5 +236,7 @@ export default function AttendancePage() {
         </Card>
     );
 }
+
+    
 
     
