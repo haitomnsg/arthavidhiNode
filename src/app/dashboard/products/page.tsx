@@ -62,19 +62,15 @@ const productSchema = z.object({
     rate: z.coerce.number().min(0, "Rate cannot be negative."),
     photo: z
       .any()
-      .optional()
       .refine((file) => {
-        if (!file || !(file instanceof File)) {
-          return true; // Allow no file or non-File types (for existing URLs)
-        }
+        if (!file || !(file instanceof File)) return true; // Not a new file, so skip validation
         return file.size <= MAX_FILE_SIZE;
       }, `Max file size is 1MB.`)
       .refine((file) => {
-        if (!file || !(file instanceof File)) {
-          return true; // Allow no file or non-File types
-        }
+        if (!file || !(file instanceof File)) return true;
         return ACCEPTED_IMAGE_TYPES.includes(file.type);
-      }, "Only .jpg and .png formats are supported."),
+      }, "Only .jpg and .png formats are supported.")
+      .optional(),
 });
 type ProductFormValues = z.infer<typeof productSchema>;
 

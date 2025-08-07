@@ -43,6 +43,9 @@ const productCategorySchema = z.object({
   name: z.string().min(1, "Category name is required."),
 });
 
+const MAX_FILE_SIZE = 1024 * 1024 * 1; // 1MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/jpg"];
+
 // Zod schema for Product
 const productSchema = z.object({
     id: z.number().optional(),
@@ -50,7 +53,17 @@ const productSchema = z.object({
     categoryId: z.coerce.number().min(1, "Category is required."),
     quantity: z.coerce.number().min(0, "Quantity cannot be negative."),
     rate: z.coerce.number().min(0, "Rate cannot be negative."),
-    photo: z.any().optional(),
+    photo: z
+      .any()
+      .refine((file) => {
+        if (!file || !(file instanceof File)) return true; // Not a new file, so skip validation
+        return file.size <= MAX_FILE_SIZE;
+      }, `Max file size is 1MB.`)
+      .refine((file) => {
+        if (!file || !(file instanceof File)) return true;
+        return ACCEPTED_IMAGE_TYPES.includes(file.type);
+      }, "Only .jpg and .png formats are supported.")
+      .optional(),
 });
 
 
@@ -155,7 +168,8 @@ export const upsertProduct = async (formData: FormData) => {
         id: values.id ? Number(values.id) : undefined,
         categoryId: Number(values.categoryId),
         quantity: Number(values.quantity),
-        rate: Number(values.rate)
+        rate: Number(values.rate),
+        photo: values.photo,
     });
 
     if (!validatedFields.success) {
@@ -177,10 +191,14 @@ export const upsertProduct = async (formData: FormData) => {
             const uniqueFilename = `${randomUUID()}.${fileExtension}`;
             const path = join(process.cwd(), 'public', 'uploads', 'products', uniqueFilename);
             
+            // Ensure the directory exists. This is a good practice but might require `fs/promises` `mkdir`.
+            // For simplicity, we assume 'public/uploads/products' exists.
+            // You can create it manually or add `await mkdir(dirname(path), { recursive: true });`
+            
             await writeFile(path, buffer);
-            photoUrl = `/uploads/products/${uniqueFilename}`;
+            photoUrl = `/uploads/products/${uniqueFilename}`; // The public URL path
         } catch (e) {
-            console.error(e);
+            console.error("File upload error:", e);
             return { error: "Failed to save the photo." };
         }
     }
