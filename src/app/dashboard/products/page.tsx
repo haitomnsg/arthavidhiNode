@@ -51,8 +51,8 @@ const productCategorySchema = z.object({
 });
 type ProductCategoryFormValues = z.infer<typeof productCategorySchema>;
 
-const MAX_FILE_SIZE = 1024 * 1024; // 1MB
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png"];
+const MAX_FILE_SIZE = 1024 * 1024 * 1; // 1MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/jpg"];
 
 const productSchema = z.object({
     id: z.number().optional(),
@@ -62,12 +62,19 @@ const productSchema = z.object({
     rate: z.coerce.number().min(0, "Rate cannot be negative."),
     photo: z
       .any()
-      .refine((file) => !file || file.size <= MAX_FILE_SIZE, `Max file size is 1MB.`)
-      .refine(
-        (file) => !file || ACCEPTED_IMAGE_TYPES.includes(file.type),
-        "Only .jpg and .png formats are supported."
-      )
-      .optional(),
+      .optional()
+      .refine((file) => {
+        if (!file || !(file instanceof File)) {
+          return true; // Allow no file or non-File types (for existing URLs)
+        }
+        return file.size <= MAX_FILE_SIZE;
+      }, `Max file size is 1MB.`)
+      .refine((file) => {
+        if (!file || !(file instanceof File)) {
+          return true; // Allow no file or non-File types
+        }
+        return ACCEPTED_IMAGE_TYPES.includes(file.type);
+      }, "Only .jpg and .png formats are supported."),
 });
 type ProductFormValues = z.infer<typeof productSchema>;
 
@@ -423,7 +430,7 @@ function ProductFormDialog({ isOpen, onClose, onSuccess, product, categories }: 
             formData.append('categoryId', String(values.categoryId));
             formData.append('quantity', String(values.quantity));
             formData.append('rate', String(values.rate));
-            if (values.photo) {
+            if (values.photo instanceof File) {
                 formData.append('photo', values.photo);
             } else if (product?.photoUrl) {
                 formData.append('currentPhotoUrl', product.photoUrl);
@@ -529,3 +536,5 @@ function ProductFormDialog({ isOpen, onClose, onSuccess, product, categories }: 
         </Dialog>
     );
 }
+
+    
