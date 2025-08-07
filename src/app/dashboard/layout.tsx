@@ -17,6 +17,7 @@ import {
   PlusCircle,
   CalendarClock,
   Building,
+  Package,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -55,6 +56,7 @@ import CreateBillPage from "./bills/create/page";
 import CreateQuotationPage from "./quotations/create/page";
 import ManageEmployeesPage from "./attendance/employees/page";
 import EmployeeReportPage from "./attendance/employees/[employeeId]/page";
+import ProductsPage from "./products/page";
 import { getCompanyDetails } from "../actions/company";
 
 // Helper function to create a component map
@@ -69,6 +71,7 @@ const createPageMap = () => {
         '/dashboard/attendance': AttendancePage,
         '/dashboard/attendance/employees': ManageEmployeesPage,
         '/dashboard/account': AccountPage,
+        '/dashboard/products': ProductsPage,
     };
 
     // Add dynamic routes with placeholder components
@@ -95,6 +98,8 @@ const createPageMap = () => {
     CreateQuotationPage.icon = PlusCircle;
     ManageEmployeesPage.title = "Manage Employees";
     ManageEmployeesPage.icon = Users;
+    ProductsPage.title = "Products";
+    ProductsPage.icon = Package;
     
     ViewBillPage.isDynamic = true;
     ViewQuotationPage.isDynamic = true;
@@ -109,6 +114,7 @@ const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
   { href: "/dashboard/bills", icon: FileText, label: "Bills" },
   { href: "/dashboard/quotations", icon: FileSearch, label: "Quotations" },
+  { href: "/dashboard/products", icon: Package, label: "Products" },
   { href: "/dashboard/expenses", icon: Wallet, label: "Expenses" },
   { href: "/dashboard/attendance", icon: Users, label: "Attendance" },
   { href: "/dashboard/account", icon: User, label: "Account" },
@@ -281,4 +287,3 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   );
 }
 
-    
