@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@zodform/resolvers/zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { PlusCircle, Edit, Trash2, Loader2, Package, Search, Image as ImageIcon } from 'lucide-react';
 import Image from 'next/image';
@@ -456,4 +456,5 @@ function ProductFormDialog({ isOpen, onClose, onSuccess, product, categories }: 
         </Dialog>
     );
 }
+
 
