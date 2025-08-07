@@ -289,7 +289,7 @@ function ProductManager() {
                                     </TableCell>
                                     <TableCell>{prod.categoryName}</TableCell>
                                     <TableCell className="text-center">{prod.quantity}</TableCell>
-                                    <TableCell className="text-right">Rs. {prod.rate.toFixed(2)}</TableCell>
+                                    <TableCell className="text-right">Rs. {Number(prod.rate).toFixed(2)}</TableCell>
                                     <TableCell className="text-center">
                                        <div className="flex items-center justify-center">
                                             <Button variant="ghost" size="icon" onClick={() => handleOpenForm(prod)} disabled={isPending}><Edit className="h-4 w-4" /></Button>
@@ -456,6 +456,3 @@ function ProductFormDialog({ isOpen, onClose, onSuccess, product, categories }: 
         </Dialog>
     );
 }
-
-
-
