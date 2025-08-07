@@ -9,11 +9,11 @@ import { PlusCircle, Edit, Trash2, Loader2, Package, Search, Image as ImageIcon 
 import Image from 'next/image';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter as FormDialogFooter } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {
@@ -361,10 +361,10 @@ function CategoryFormDialog({ isOpen, onClose, onSuccess, category }: { isOpen: 
                         <FormField control={form.control} name="name" render={({ field }) => (
                             <FormItem><FormLabel>Category Name</FormLabel><FormControl><Input placeholder="e.g., Electronics" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
-                        <DialogFooter>
+                        <FormDialogFooter>
                             <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
                             <Button type="submit" disabled={isPending}>{isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}</Button>
-                        </DialogFooter>
+                        </FormDialogFooter>
                     </form>
                 </Form>
             </DialogContent>
@@ -444,17 +444,18 @@ function ProductFormDialog({ isOpen, onClose, onSuccess, product, categories }: 
                             )} />
                         </div>
                         <FormField control={form.control} name="photoUrl" render={({ field }) => (
-                            <FormItem><FormLabel>Photo URL (Optional)</FormLabel><FormControl><Input placeholder="https://example.com/image.png" {...field} /></FormControl><FormMessage /></FormItem>
+                            <FormItem><FormLabel>Photo URL (Optional)</FormLabel><FormControl><Input placeholder="https://placehold.co/400x400.png" {...field} /></FormControl><FormMessage /></FormItem>
                         )} />
-                        <DialogFooter>
+                        <FormDialogFooter>
                             <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
                             <Button type="submit" disabled={isPending}>{isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save Product'}</Button>
-                        </DialogFooter>
+                        </FormDialogFooter>
                     </form>
                 </Form>
             </DialogContent>
         </Dialog>
     );
 }
+
 
 
