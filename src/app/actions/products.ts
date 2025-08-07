@@ -5,6 +5,10 @@ import db from '@/lib/db';
 import * as z from 'zod';
 import { revalidatePath } from 'next/cache';
 import type { RowDataPacket, OkPacket } from 'mysql2';
+import { writeFile } from 'fs/promises';
+import { join } from 'path';
+import { randomUUID } from 'crypto';
+
 
 // TODO: Replace with authenticated user ID from session
 const getUserId = async () => {
@@ -46,7 +50,7 @@ const productSchema = z.object({
     categoryId: z.coerce.number().min(1, "Category is required."),
     quantity: z.coerce.number().min(0, "Quantity cannot be negative."),
     rate: z.coerce.number().min(0, "Rate cannot be negative."),
-    photoUrl: z.string().url("Please enter a valid URL.").or(z.literal("")).optional(),
+    photo: z.any().optional(),
 });
 
 
@@ -143,25 +147,55 @@ export const getProducts = async () => {
     }
 };
 
-export const upsertProduct = async (values: z.infer<typeof productSchema>) => {
-    const validatedFields = productSchema.safeParse(values);
+export const upsertProduct = async (formData: FormData) => {
+    const values = Object.fromEntries(formData.entries());
+
+    const validatedFields = productSchema.safeParse({
+        ...values,
+        id: values.id ? Number(values.id) : undefined,
+        categoryId: Number(values.categoryId),
+        quantity: Number(values.quantity),
+        rate: Number(values.rate)
+    });
+
     if (!validatedFields.success) {
         console.log(validatedFields.error.flatten());
         return { error: "Invalid fields provided." };
     }
-    const { id, name, categoryId, quantity, rate, photoUrl } = validatedFields.data;
+    
+    const { id, name, categoryId, quantity, rate, photo } = validatedFields.data;
     const userId = await getUserId();
+
+    let photoUrl = values.currentPhotoUrl as string || null;
+
+    if (photo && photo instanceof File && photo.size > 0) {
+        try {
+            const bytes = await photo.arrayBuffer();
+            const buffer = Buffer.from(bytes);
+
+            const fileExtension = photo.name.split('.').pop();
+            const uniqueFilename = `${randomUUID()}.${fileExtension}`;
+            const path = join(process.cwd(), 'public', 'uploads', 'products', uniqueFilename);
+            
+            await writeFile(path, buffer);
+            photoUrl = `/uploads/products/${uniqueFilename}`;
+        } catch (e) {
+            console.error(e);
+            return { error: "Failed to save the photo." };
+        }
+    }
+
 
     try {
         if (id) {
             await db.query(
                 'UPDATE `Product` SET `name` = ?, `categoryId` = ?, `quantity` = ?, `rate` = ?, `photoUrl` = ? WHERE `id` = ? AND `userId` = ?',
-                [name, categoryId, quantity, rate, photoUrl || null, id, userId]
+                [name, categoryId, quantity, rate, photoUrl, id, userId]
             );
         } else {
             await db.query(
                 'INSERT INTO `Product` (`userId`, `name`, `categoryId`, `quantity`, `rate`, `photoUrl`) VALUES (?, ?, ?, ?, ?, ?)',
-                [userId, name, categoryId, quantity, rate, photoUrl || null]
+                [userId, name, categoryId, quantity, rate, photoUrl]
             );
         }
         revalidatePath('/dashboard/products');
