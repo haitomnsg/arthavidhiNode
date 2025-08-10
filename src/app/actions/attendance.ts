@@ -164,9 +164,9 @@ export const clockOut = async (attendanceId: number) => {
 };
 
 export const updateAttendanceTime = async (attendanceId: number, type: 'entry' | 'exit', time: string, date: Date) => {
+    const columnToUpdate = type === 'entry' ? 'entryTime' : 'exitTime';
+
     if (!time) {
-        // If time is cleared, set the column to NULL
-        const columnToUpdate = type === 'entry' ? 'entryTime' : 'exitTime';
         try {
             await db.query(`UPDATE Attendance SET ${columnToUpdate} = NULL WHERE id = ?`, [attendanceId]);
             revalidatePath('/dashboard/attendance');
@@ -176,29 +176,40 @@ export const updateAttendanceTime = async (attendanceId: number, type: 'entry' |
             return { error: "Database Error: Failed to clear time." };
         }
     }
-    
-    // Combine date and time string
-    const [hours, minutes] = time.split(':');
-    const newDateTime = new Date(date);
-    newDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
 
-    const columnToUpdate = type === 'entry' ? 'entryTime' : 'exitTime';
-    
     try {
+        // Fetch the original attendance record to get the correct date
+        const [attendanceRows] = await db.query<RowDataPacket[]>('SELECT `date` FROM `Attendance` WHERE `id` = ?', [attendanceId]);
+        if (attendanceRows.length === 0) {
+            return { error: "Attendance record not found." };
+        }
+        const originalAttendance = attendanceRows[0] as Attendance;
+        const originalDate = new Date(originalAttendance.date);
+
+        // Combine the original date with the new time string
+        const [hours, minutes] = time.split(':');
+        const newDateTime = new Date(originalDate);
+        newDateTime.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+
         const [result] = await db.query<OkPacket>(
             `UPDATE Attendance SET ${columnToUpdate} = ? WHERE id = ?`,
             [newDateTime, attendanceId]
         );
+
         if (result.affectedRows === 0) {
-            return { error: "Attendance record not found." };
+            // This case should theoretically not be hit due to the check above, but it's good practice.
+            return { error: "Attendance record not found during update." };
         }
+        
         revalidatePath('/dashboard/attendance');
         return { success: "Time updated successfully." };
+
     } catch (error) {
         console.error("Failed to update time:", error);
         return { error: "Database Error: Failed to update time." };
     }
 };
+
 
 export const markAsAbsent = async (employeeId: number, date: Date) => {
     const formattedDate = format(date, 'yyyy-MM-dd');
