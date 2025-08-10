@@ -18,6 +18,8 @@ import {
   CalendarClock,
   Building,
   Package,
+  ShoppingCart,
+  AreaChart,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -82,23 +84,23 @@ const createPageMap = () => {
     // Add metadata
     DashboardPage.title = "Dashboard";
     DashboardPage.icon = Home;
-    BillsPage.title = "Bills";
+    BillsPage.title = "Sales Manager";
     BillsPage.icon = FileText;
-    QuotationsPage.title = "Quotations";
+    QuotationsPage.title = "Quotation Manager";
     QuotationsPage.icon = FileSearch;
-    ExpensesPage.title = "Expenses";
+    ExpensesPage.title = "Expenses Manager";
     ExpensesPage.icon = Wallet;
-    AttendancePage.title = "Attendance";
+    AttendancePage.title = "Attendance Manager";
     AttendancePage.icon = Users;
-    AccountPage.title = "Account";
-    AccountPage.icon = User;
+    AccountPage.title = "Settings";
+    AccountPage.icon = Settings;
     CreateBillPage.title = "Create Bill";
     CreateBillPage.icon = PlusCircle;
     CreateQuotationPage.title = "Create Quotation";
     CreateQuotationPage.icon = PlusCircle;
     ManageEmployeesPage.title = "Manage Employees";
     ManageEmployeesPage.icon = Users;
-    ProductsPage.title = "Products";
+    ProductsPage.title = "Product Manager";
     ProductsPage.icon = Package;
     
     ViewBillPage.isDynamic = true;
@@ -112,12 +114,14 @@ const pageComponents = createPageMap();
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
-  { href: "/dashboard/bills", icon: FileText, label: "Bills" },
-  { href: "/dashboard/quotations", icon: FileSearch, label: "Quotations" },
-  { href: "/dashboard/products", icon: Package, label: "Products" },
-  { href: "/dashboard/expenses", icon: Wallet, label: "Expenses" },
-  { href: "/dashboard/attendance", icon: Users, label: "Attendance" },
-  { href: "/dashboard/account", icon: User, label: "Account" },
+  { href: "/dashboard/products", icon: Package, label: "Product Manager" },
+  { href: "/dashboard/purchase", icon: ShoppingCart, label: "Purchase Manager" },
+  { href: "/dashboard/bills", icon: FileText, label: "Sales Manager" },
+  { href: "/dashboard/quotations", icon: FileSearch, label: "Quotation Manager" },
+  { href: "/dashboard/expenses", icon: Wallet, label: "Expenses Manager" },
+  { href: "/dashboard/attendance", icon: Users, label: "Attendance Manager" },
+  { href: "/dashboard/reports", icon: AreaChart, label: "Reports Manager" },
+  { href: "/dashboard/account", icon: Settings, label: "Settings" },
 ];
 
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
@@ -133,6 +137,12 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
   const handleNavClick = (e: React.MouseEvent, href: string) => {
     e.preventDefault();
+    if (href === "/dashboard/purchase" || href === "/dashboard/reports") {
+        // Placeholder for future implementation
+        alert(`${href.split('/')[2].replace('-', ' ')} is not yet implemented.`);
+        return;
+    }
+
     const component = pageComponents[href];
     if (component) {
         openTab({
@@ -286,4 +296,3 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </AppStateProvider>
   );
 }
-
