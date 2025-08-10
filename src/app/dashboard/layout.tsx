@@ -143,14 +143,14 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         return;
     }
 
-    const component = pageComponents[href];
-    if (component) {
-        openTab({
-            id: href,
-            title: component.title || "Page",
-            icon: component.icon || FileText,
-            props: {}
-        });
+    const targetTab = navItems.find(item => item.href === href);
+    if(targetTab){
+      openTab({
+          id: href,
+          title: targetTab.label,
+          icon: targetTab.icon,
+          props: {}
+      });
     }
   };
 
@@ -201,71 +201,73 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-primary px-4 text-primary-foreground sm:px-6 print:hidden">
-          <div className="flex items-center gap-4">
-             <SidebarTrigger className="hover:bg-white/20" />
-             <div className="flex items-center gap-2">
-                <Building className="h-6 w-6" />
-                <span className="text-xl font-semibold">{companyName}</span>
-             </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-white/20">
-                  <Avatar className="h-8 w-8 bg-white/20">
-                    <AvatarFallback className="bg-transparent text-primary-foreground">
-                      <User className="h-5 w-5" />
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="#" onClick={(e) => handleNavClick(e, '/dashboard/account')}><Settings className="mr-2 h-4 w-4" />Settings</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push('/')}>
-                  <LogOut className="mr-2 h-4 w-4" />Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
-        
-        {/* Tab Bar */}
-        <div className="flex border-b bg-background print:hidden">
-            {openTabs.map(tab => {
-                const TabIcon = tab.icon;
-                return (
-                    <div
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={cn(
-                            "flex items-center gap-2 px-4 py-2 border-b-2 cursor-pointer text-sm",
-                            activeTab === tab.id
-                                ? "border-primary text-primary font-semibold"
-                                : "border-transparent text-muted-foreground hover:bg-muted"
-                        )}
-                    >
-                        <TabIcon className="h-4 w-4" />
-                        <span>{tab.title}</span>
-                         <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-5 w-5 ml-2 rounded-full"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                closeTab(tab.id);
-                            }}
+        <div className="sticky top-0 z-20 bg-background">
+            <header className="flex h-16 items-center justify-between border-b bg-primary px-4 text-primary-foreground sm:px-6 print:hidden">
+            <div className="flex items-center gap-4">
+                <SidebarTrigger className="hover:bg-white/20" />
+                <div className="flex items-center gap-2">
+                    <Building className="h-6 w-6" />
+                    <span className="text-xl font-semibold">{companyName}</span>
+                </div>
+            </div>
+            <div className="flex items-center gap-4">
+                <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-white/20">
+                    <Avatar className="h-8 w-8 bg-white/20">
+                        <AvatarFallback className="bg-transparent text-primary-foreground">
+                        <User className="h-5 w-5" />
+                        </AvatarFallback>
+                    </Avatar>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                    <Link href="#" onClick={(e) => handleNavClick(e, '/dashboard/account')}><Settings className="mr-2 h-4 w-4" />Settings</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => router.push('/')}>
+                    <LogOut className="mr-2 h-4 w-4" />Log out
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
+            </header>
+            
+            {/* Tab Bar */}
+            <div className="flex border-b bg-background print:hidden overflow-x-auto">
+                {openTabs.map(tab => {
+                    const TabIcon = tab.icon;
+                    return (
+                        <div
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={cn(
+                                "flex items-center gap-2 px-4 py-2 border-b-2 cursor-pointer text-sm flex-shrink-0",
+                                activeTab === tab.id
+                                    ? "border-primary text-primary font-semibold"
+                                    : "border-transparent text-muted-foreground hover:bg-muted"
+                            )}
                         >
-                            <X className="h-3 w-3" />
-                        </Button>
-                    </div>
-                );
-            })}
+                            <TabIcon className="h-4 w-4" />
+                            <span>{tab.title}</span>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-5 w-5 ml-2 rounded-full"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    closeTab(tab.id);
+                                }}
+                            >
+                                <X className="h-3 w-3" />
+                            </Button>
+                        </div>
+                    );
+                })}
+            </div>
         </div>
 
         <main className="flex-1 p-4 sm:p-6">
