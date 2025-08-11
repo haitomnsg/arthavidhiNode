@@ -22,7 +22,7 @@ jobs:
           port: 21
           protocol: ftp
           local-dir: ./
-          server-dir: /home/haitomn1/billing.haitomns.com
+          server-dir: /home/haitomn1/billing.haitomns.com/
           exclude: |
             **/node_modules/**
             **/.git/**
