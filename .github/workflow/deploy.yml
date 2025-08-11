@@ -1,0 +1,29 @@
+name: Deploy Next.js to cPanel via FTP
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Upload to cPanel via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.3
+        with:
+          server: ftp.haitomnsgroups.com
+          username: github@billing.haitomns.com
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          protocol: ftp
+          local-dir: ./
+          server-dir: /home/haitomn1/billing.haitomns.com
+          exclude: |
+            **/node_modules/**
+            **/.git/**
+            **/.github/**
