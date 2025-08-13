@@ -51,8 +51,8 @@ function PurchaseItems({ control, products }: { control: any, products: Product[
       <h3 className="text-lg font-medium">Purchase Items</h3>
       {fields.map((field, index) => (
          <div key={field.id} className="flex w-full gap-4 items-end p-4 border rounded-lg relative">
-            <div className="flex md:flex-row flex-col w-full gap-4 items-end">
-                <div className="w-full md:w-1/2 flex-grow">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 w-full">
+                <div className="md:col-span-7">
                      <FormField
                       name={`items.${index}.productId`}
                       control={control}
@@ -62,7 +62,7 @@ function PurchaseItems({ control, products }: { control: any, products: Product[
                            <Combobox
                                 options={productOptions}
                                 value={field.value}
-                                onChange={field.onChange}
+                                onChange={(value) => field.onChange(Number(value))}
                                 placeholder="Select a product..."
                                 searchPlaceholder="Search products..."
                                 emptyPlaceholder="No products found."
@@ -72,10 +72,10 @@ function PurchaseItems({ control, products }: { control: any, products: Product[
                       )}
                     />
                 </div>
-                <div className="w-full md:w-24">
+                <div className="md:col-span-2">
                      <FormField name={`items.${index}.quantity`} control={control} render={({ field }) => (<FormItem><FormLabel>Quantity</FormLabel><FormControl><Input type="number" {...field} placeholder="1" /></FormControl><FormMessage /></FormItem>)} />
                 </div>
-                <div className="w-full md:w-32">
+                <div className="md:col-span-3">
                     <FormField name={`items.${index}.rate`} control={control} render={({ field }) => (<FormItem><FormLabel>Rate (Rs.)</FormLabel><FormControl><Input type="number" {...field} placeholder="100.00" /></FormControl><FormMessage /></FormItem>)} />
                 </div>
             </div>
@@ -90,7 +90,7 @@ function PurchaseItems({ control, products }: { control: any, products: Product[
 
 export default function PurchasePage() {
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 items-start">
             <div className="lg:col-span-3">
                 <PurchaseForm />
             </div>
@@ -135,8 +135,6 @@ function PurchaseForm() {
       if (result.success) {
         toast({ title: "Success", description: result.success });
         form.reset();
-        // Here you would typically trigger a refetch of the history component
-        // For now, we rely on the user to see the updated list on next load or manual refresh
         window.dispatchEvent(new CustomEvent('purchasesUpdated'));
       } else {
         toast({ title: "Error", description: result.error, variant: "destructive" });
@@ -319,5 +317,3 @@ function TableSkeleton() {
     </div>
   );
 }
-
-    
