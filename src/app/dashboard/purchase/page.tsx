@@ -48,8 +48,8 @@ function PurchaseItems({ control, products }: { control: any, products: Product[
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Purchase Items</h3>
       {fields.map((field, index) => (
-        <div key={field.id} className="flex gap-4 items-end p-4 border rounded-lg relative">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 flex-1">
+        <div key={field.id} className="flex w-full gap-4 items-end p-4 border rounded-lg relative">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 w-full">
             <FormField
               name={`items.${index}.productId`}
               control={control}
@@ -155,11 +155,11 @@ export default function PurchasePage() {
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
-                              <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}</Button>
+                              <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{field.value ? format(new Date(field.value), "PPP") : <span>Pick a date</span>}</Button>
                             </FormControl>
                           </PopoverTrigger>
                           <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                            <Calendar mode="single" selected={new Date(field.value)} onSelect={field.onChange} initialFocus />
                           </PopoverContent>
                         </Popover>
                         <FormMessage />
