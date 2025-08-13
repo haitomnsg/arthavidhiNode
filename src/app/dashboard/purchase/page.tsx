@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useTransition, useMemo } from 'react';
-import { useForm, useFieldArray, useWatch, useFormContext } from 'react-hook-form';
+import { useForm, useFieldArray, useFormContext } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { CalendarIcon, PlusCircle, Save, X, ShoppingCart } from 'lucide-react';
@@ -21,13 +21,12 @@ import { getProducts, Product } from '@/app/actions/products';
 import { createPurchase, getAllPurchases } from '@/app/actions/purchase';
 import { Separator } from '@/components/ui/separator';
 import { Combobox } from '@/components/ui/combobox';
-import { getCompanyDetails } from '@/app/actions/company';
-import { PurchasePreview } from '@/components/purchase-preview';
-import { revalidatePath } from 'next/cache';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const purchaseItemSchema = z.object({
   productId: z.coerce.number().min(1, "Product is required"),
-  productName: z.string().optional(), // To hold the name for the preview
+  productName: z.string().optional(),
   quantity: z.coerce.number().min(1, "Quantity must be at least 1"),
   rate: z.coerce.number().min(0, "Rate must be a positive number"),
 });
@@ -43,19 +42,24 @@ const purchaseFormSchema = z.object({
 });
 
 export type PurchaseFormValues = z.infer<typeof purchaseFormSchema>;
+type PurchaseHistory = {
+    id: number;
+    supplierBillNumber: string;
+    supplierName: string;
+    purchaseDate: Date;
+};
 
 function PurchaseItems({ control, products }: { control: any, products: Product[] }) {
   const { fields, append, remove } = useFieldArray({ control, name: "items" });
   const form = useFormContext();
-
   const productOptions = products.map(p => ({ label: p.name, value: p.id }));
 
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Purchase Items</h3>
       {fields.map((field, index) => (
-         <div key={field.id} className="flex w-full gap-4 items-end p-4 border rounded-lg relative">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 w-full">
+         <div key={field.id} className="flex gap-4 items-end p-4 border rounded-lg relative">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 flex-1">
                 <div className="md:col-span-7">
                      <FormField
                       name={`items.${index}.productId`}
@@ -96,22 +100,33 @@ function PurchaseItems({ control, products }: { control: any, products: Product[
   );
 }
 
-
 export default function PurchasePage() {
     const { toast } = useToast();
     const [isPending, startTransition] = useTransition();
     const [products, setProducts] = useState<Product[]>([]);
-    const [companyDetails, setCompanyDetails] = useState<Partial<Company>>({});
+    const [purchases, setPurchases] = useState<PurchaseHistory[]>([]);
+    const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+
+    const fetchHistory = () => {
+        setIsLoadingHistory(true);
+        getAllPurchases().then(res => {
+            if (res.success && res.data) {
+                setPurchases(res.data as PurchaseHistory[]);
+            } else {
+                toast({ title: "Error", description: res.error, variant: "destructive" });
+            }
+        }).finally(() => setIsLoadingHistory(false));
+    };
 
     useEffect(() => {
         getProducts().then(res => {
-        if(res.success && res.data) {
-            setProducts(res.data as Product[]);
-        } else {
-            toast({ title: "Error", description: "Could not load products.", variant: "destructive" });
-        }
+            if(res.success && res.data) {
+                setProducts(res.data as Product[]);
+            } else {
+                toast({ title: "Error", description: "Could not load products.", variant: "destructive" });
+            }
         });
-        getCompanyDetails().then(setCompanyDetails);
+        fetchHistory();
     }, [toast]);
 
     const form = useForm<PurchaseFormValues>({
@@ -127,22 +142,13 @@ export default function PurchasePage() {
         },
     });
 
-    const purchaseData = useWatch({ control: form.control });
-
-    const total = useMemo(() => {
-        return (purchaseData.items || []).reduce((acc, item) => {
-            const quantity = Number(item.quantity) || 0;
-            const rate = Number(item.rate) || 0;
-            return acc + quantity * rate;
-        }, 0);
-    }, [purchaseData]);
-    
     const onSubmit = (values: PurchaseFormValues) => {
         startTransition(async () => {
         const result = await createPurchase(values);
         if (result.success) {
             toast({ title: "Success", description: result.success });
             form.reset();
+            fetchHistory(); // Refresh the history table
         } else {
             toast({ title: "Error", description: result.error, variant: "destructive" });
         }
@@ -221,30 +227,47 @@ export default function PurchasePage() {
                 </Card>
             </div>
             <div className="lg:col-span-1">
-                 <Card className="sticky top-20">
+                 <Card>
                     <CardHeader>
-                        <CardTitle>Purchase Preview</CardTitle>
+                        <CardTitle>Purchase History</CardTitle>
+                        <CardDescription>A log of all recorded purchases.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <PurchasePreview 
-                            company={companyDetails}
-                            purchase={purchaseData}
-                            total={total}
-                        />
+                        {isLoadingHistory ? (
+                             <div className="space-y-2">
+                                {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+                             </div>
+                        ) : (
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Bill #</TableHead>
+                                        <TableHead>Supplier</TableHead>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {purchases.length > 0 ? purchases.map(p => (
+                                        <TableRow key={p.id}>
+                                            <TableCell className="font-medium">{p.supplierBillNumber}</TableCell>
+                                            <TableCell>{p.supplierName}</TableCell>
+                                            <TableCell>{format(new Date(p.purchaseDate), 'PP')}</TableCell>
+                                            <TableCell className="text-right">
+                                                <Button variant="ghost" size="sm">View</Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    )) : (
+                                        <TableRow>
+                                            <TableCell colSpan={4} className="h-24 text-center">No purchases recorded yet.</TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        )}
                     </CardContent>
                 </Card>
             </div>
         </div>
     );
-}
-
-interface Company {
-    id: number;
-    userId: number;
-    name: string;
-    address?: string | null;
-    phone?: string | null;
-    email?: string | null;
-    panNumber?: string | null;
-    vatNumber?: string | null;
 }
