@@ -15,12 +15,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { getProducts, Product } from '@/app/actions/products';
 import { createPurchase, PurchaseFormValues } from '@/app/actions/purchase';
 import { Separator } from '@/components/ui/separator';
+import { Combobox } from '@/components/ui/combobox';
 
 const purchaseItemSchema = z.object({
   productId: z.coerce.number().min(1, "Product is required"),
@@ -41,6 +41,8 @@ const purchaseFormSchema = z.object({
 
 function PurchaseItems({ control, products }: { control: any, products: Product[] }) {
   const { fields, append, remove } = useFieldArray({ control, name: "items" });
+  
+  const productOptions = products.map(p => ({ label: p.name, value: p.id }));
 
   return (
     <div className="space-y-4">
@@ -52,16 +54,16 @@ function PurchaseItems({ control, products }: { control: any, products: Product[
               name={`items.${index}.productId`}
               control={control}
               render={({ field }) => (
-                <FormItem className="md:col-span-6">
-                  <FormLabel>Product</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
-                    <FormControl>
-                      <SelectTrigger><SelectValue placeholder="Select a product" /></SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {products.map(p => <SelectItem key={p.id} value={String(p.id)}>{p.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                <FormItem className="md:col-span-6 flex flex-col">
+                  <FormLabel>Product Name</FormLabel>
+                   <Combobox
+                        options={productOptions}
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Select a product..."
+                        searchPlaceholder="Search products..."
+                        emptyPlaceholder="No products found."
+                    />
                   <FormMessage />
                 </FormItem>
               )}
@@ -188,5 +190,3 @@ export default function PurchasePage() {
     </Card>
   );
 }
-
-    
