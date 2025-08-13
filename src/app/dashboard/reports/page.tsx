@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useTransition } from "react";
@@ -11,9 +10,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
-import { getSalesReport } from "@/app/actions/reports";
+import { getSalesReport, getExpenseReport, getPurchaseReport, getProfitLossReport } from "@/app/actions/reports";
 import { generateSalesReportPdf } from "@/components/reports/sales-report-pdf";
+import { generateExpenseReportPdf } from "@/components/reports/expense-report-pdf";
+import { generatePurchaseReportPdf } from "@/components/reports/purchase-report-pdf";
+import { generateProfitLossReportPdf } from "@/components/reports/profit-loss-pdf";
 import { getCompanyDetails } from "@/app/actions/company";
+
+type ReportType = 'sales' | 'expense' | 'purchase' | 'pnl';
 
 type ReportCardProps = {
   title: string;
@@ -29,8 +33,8 @@ const ReportCard: React.FC<ReportCardProps> = ({ title, description, onGenerate,
   });
 
   const handleGenerate = () => {
-    if (date) {
-      onGenerate(date);
+    if (date?.from && date?.to) {
+      onGenerate({from: date.from, to: date.to});
     }
   };
 
@@ -90,39 +94,68 @@ const ReportCard: React.FC<ReportCardProps> = ({ title, description, onGenerate,
 
 export default function ReportsPage() {
     const { toast } = useToast();
-    const [isGenerating, startTransition] = useTransition();
+    const [generating, setGenerating] = useState({
+        sales: false,
+        expense: false,
+        purchase: false,
+        pnl: false,
+    });
+    const [isPending, startTransition] = useTransition();
 
-    const handleGenerateSalesReport = async (dateRange: DateRange) => {
-        if (!dateRange.from || !dateRange.to) return;
-        
+    const handleGeneration = (reportType: ReportType, generator: () => Promise<void>) => {
+        setGenerating(prev => ({ ...prev, [reportType]: true }));
         startTransition(async () => {
+            try {
+                await generator();
+            } catch (error) {
+                 toast({ title: "Error", description: "Failed to generate report.", variant: "destructive" });
+            } finally {
+                setGenerating(prev => ({ ...prev, [reportType]: false }));
+            }
+        });
+    };
+
+    const handleGenerateSalesReport = (dateRange: DateRange) => {
+        handleGeneration('sales', async () => {
             const [salesResponse, companyResponse] = await Promise.all([
                 getSalesReport(dateRange.from!, dateRange.to!),
                 getCompanyDetails()
             ]);
-
-            if (salesResponse.error) {
-                toast({ title: "Error", description: salesResponse.error, variant: "destructive" });
-                return;
-            }
-            if (salesResponse.success) {
-                try {
-                    generateSalesReportPdf({
-                        reportData: salesResponse.data,
-                        company: companyResponse,
-                        dateRange,
-                    });
-                } catch (e) {
-                    toast({ title: "PDF Error", description: "Failed to generate PDF.", variant: "destructive" });
-                }
-            }
+            if (salesResponse.error) throw new Error(salesResponse.error);
+            generateSalesReportPdf({ reportData: salesResponse.data, company: companyResponse, dateRange });
         });
     };
-    
-    const handleNotImplemented = () => {
-        toast({
-            title: "Coming Soon!",
-            description: "This report type is not yet implemented.",
+
+    const handleGenerateExpenseReport = (dateRange: DateRange) => {
+        handleGeneration('expense', async () => {
+            const [expenseResponse, companyResponse] = await Promise.all([
+                getExpenseReport(dateRange.from!, dateRange.to!),
+                getCompanyDetails()
+            ]);
+            if (expenseResponse.error) throw new Error(expenseResponse.error);
+            generateExpenseReportPdf({ reportData: expenseResponse.data, company: companyResponse, dateRange });
+        });
+    };
+
+    const handleGeneratePurchaseReport = (dateRange: DateRange) => {
+        handleGeneration('purchase', async () => {
+            const [purchaseResponse, companyResponse] = await Promise.all([
+                getPurchaseReport(dateRange.from!, dateRange.to!),
+                getCompanyDetails()
+            ]);
+            if (purchaseResponse.error) throw new Error(purchaseResponse.error);
+            generatePurchaseReportPdf({ reportData: purchaseResponse.data, company: companyResponse, dateRange });
+        });
+    };
+
+    const handleGenerateProfitLossReport = (dateRange: DateRange) => {
+        handleGeneration('pnl', async () => {
+            const [pnlResponse, companyResponse] = await Promise.all([
+                getProfitLossReport(dateRange.from!, dateRange.to!),
+                getCompanyDetails()
+            ]);
+            if (pnlResponse.error) throw new Error(pnlResponse.error);
+            generateProfitLossReportPdf({ reportData: pnlResponse.data, company: companyResponse, dateRange });
         });
     };
 
@@ -143,25 +176,25 @@ export default function ReportsPage() {
                     title="Sales Report"
                     description="Summary of revenue, discounts, and VAT from all bills."
                     onGenerate={handleGenerateSalesReport}
-                    isGenerating={isGenerating}
+                    isGenerating={generating.sales}
                 />
                 <ReportCard
                     title="Expense Report"
                     description="Detailed breakdown of all expenses by category."
-                    onGenerate={handleNotImplemented}
-                    isGenerating={isGenerating}
+                    onGenerate={handleGenerateExpenseReport}
+                    isGenerating={generating.expense}
                 />
                 <ReportCard
                     title="Purchase Report"
                     description="Summary of all inventory purchases and costs from suppliers."
-                    onGenerate={handleNotImplemented}
-                    isGenerating={isGenerating}
+                    onGenerate={handleGeneratePurchaseReport}
+                    isGenerating={generating.purchase}
                 />
                  <ReportCard
-                    title="Profit & Loss Report"
+                    title="Profit &amp; Loss Report"
                     description="Compares revenue vs. expenses to estimate profitability."
-                    onGenerate={handleNotImplemented}
-                    isGenerating={isGenerating}
+                    onGenerate={handleGenerateProfitLossReport}
+                    isGenerating={generating.pnl}
                 />
             </div>
         </div>
