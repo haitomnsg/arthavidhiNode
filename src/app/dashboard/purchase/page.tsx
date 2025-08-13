@@ -54,7 +54,7 @@ function PurchaseItems({ control, products }: { control: any, products: Product[
               name={`items.${index}.productId`}
               control={control}
               render={({ field }) => (
-                <FormItem className="md:col-span-6 flex flex-col">
+                <FormItem className="md:col-span-7 flex flex-col">
                   <FormLabel>Product Name</FormLabel>
                    <Combobox
                         options={productOptions}
@@ -68,7 +68,7 @@ function PurchaseItems({ control, products }: { control: any, products: Product[
                 </FormItem>
               )}
             />
-            <FormField name={`items.${index}.quantity`} control={control} render={({ field }) => (<FormItem className="md:col-span-3"><FormLabel>Quantity</FormLabel><FormControl><Input type="number" {...field} placeholder="1" /></FormControl><FormMessage /></FormItem>)} />
+            <FormField name={`items.${index}.quantity`} control={control} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Quantity</FormLabel><FormControl><Input type="number" {...field} placeholder="1" /></FormControl><FormMessage /></FormItem>)} />
             <FormField name={`items.${index}.rate`} control={control} render={({ field }) => (<FormItem className="md:col-span-3"><FormLabel>Rate (Rs.)</FormLabel><FormControl><Input type="number" {...field} placeholder="100.00" /></FormControl><FormMessage /></FormItem>)} />
           </div>
           <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-muted-foreground hover:text-destructive shrink-0"><X className="h-4 w-4" /></Button>
