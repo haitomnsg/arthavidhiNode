@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useState, useEffect, useTransition, useMemo } from 'react';
-import { useForm, useFieldArray, useWatch } from 'react-hook-form';
+import { useForm, useFieldArray, useWatch, useFormContext } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { CalendarIcon, PlusCircle, Save, X, ShoppingCart } from 'lucide-react';
@@ -18,7 +18,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { getProducts, Product } from '@/app/actions/products';
-import { createPurchase, PurchaseFormValues, getAllPurchases } from '@/app/actions/purchase';
+import { createPurchase, getAllPurchases } from '@/app/actions/purchase';
 import { Separator } from '@/components/ui/separator';
 import { Combobox } from '@/components/ui/combobox';
 import { getCompanyDetails } from '@/app/actions/company';
@@ -42,6 +42,8 @@ const purchaseFormSchema = z.object({
   remarks: z.string().optional(),
 });
 
+export type PurchaseFormValues = z.infer<typeof purchaseFormSchema>;
+
 function PurchaseItems({ control, products }: { control: any, products: Product[] }) {
   const { fields, append, remove } = useFieldArray({ control, name: "items" });
   const form = useFormContext();
@@ -53,7 +55,7 @@ function PurchaseItems({ control, products }: { control: any, products: Product[
       <h3 className="text-lg font-medium">Purchase Items</h3>
       {fields.map((field, index) => (
          <div key={field.id} className="flex w-full gap-4 items-end p-4 border rounded-lg relative">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 flex-1">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 w-full">
                 <div className="md:col-span-7">
                      <FormField
                       name={`items.${index}.productId`}
