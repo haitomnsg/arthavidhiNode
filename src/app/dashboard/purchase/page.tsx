@@ -53,113 +53,112 @@ function PurchaseItems({ control, products }: { control: any, products: Product[
     const { fields, append, remove } = useFieldArray({ control, name: "items" });
     const form = useFormContext();
     const productOptions = products.map(p => ({ label: p.name, value: p.id }));
-
+  
     return (
-        <div className="space-y-4">
-            <h3 className="text-lg font-medium">Purchase Items</h3>
-
-            {/* Table-like layout for inputs */}
-            <div className="grid grid-cols-12 gap-4 font-semibold text-sm text-gray-600">
-                <div className="col-span-7">Product Name</div>
-                <div className="col-span-2">Quantity</div>
-                <div className="col-span-3">Rate (Rs.)</div>
-            </div>
-
-            {fields.map((field, index) => (
-                <div
-                    key={field.id}
-                    className="grid grid-cols-12 gap-4 items-end border rounded-lg p-4 relative"
-                >
-                    {/* Product */}
-                    <div className="col-span-7">
-                        <FormField
-                            name={`items.${index}.productId`}
-                            control={control}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <Combobox
-                                            options={productOptions}
-                                            value={field.value}
-                                            onChange={(value) => {
-                                                const selectedProductId = Number(value);
-                                                const selectedProduct = products.find(
-                                                    (p) => p.id === selectedProductId
-                                                );
-                                                field.onChange(selectedProductId);
-                                                form.setValue(
-                                                    `items.${index}.productName`,
-                                                    selectedProduct?.name || ""
-                                                );
-                                            }}
-                                            placeholder="Select a product..."
-                                            searchPlaceholder="Search products..."
-                                            emptyPlaceholder="No products found."
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-
-                    {/* Quantity */}
-                    <div className="col-span-2">
-                        <FormField
-                            name={`items.${index}.quantity`}
-                            control={control}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <Input type="number" {...field} placeholder="1" />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-
-                    {/* Rate */}
-                    <div className="col-span-3">
-                        <FormField
-                            name={`items.${index}.rate`}
-                            control={control}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormControl>
-                                        <Input type="number" {...field} placeholder="100.00" />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </div>
-
-                    {/* Remove button */}
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => remove(index)}
-                        className="absolute -top-2 -right-2 text-muted-foreground hover:text-destructive"
-                    >
-                        <X className="h-4 w-4" />
-                    </Button>
-                </div>
-            ))}
-
-            <Button
-                type="button"
-                variant="outline"
-                onClick={() =>
-                    append({ productId: 0, quantity: 1, rate: 0, productName: "" })
-                }
-            >
-                <PlusCircle className="mr-2 h-4 w-4" /> Add Item
-            </Button>
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium">Purchase Items</h3>
+  
+        {/* Header row */}
+        <div className="grid grid-cols-12 gap-2 text-sm font-medium text-muted-foreground px-2">
+          <div className="col-span-7">Product Name</div>
+          <div className="col-span-2">Quantity</div>
+          <div className="col-span-3">Rate (Rs.)</div>
         </div>
+  
+        {fields.map((field, index) => (
+          <div
+            key={field.id}
+            className="grid grid-cols-12 gap-2 items-center border rounded-md p-2"
+          >
+            {/* Product name */}
+            <div className="col-span-7">
+              <FormField
+                name={`items.${index}.productId`}
+                control={control}
+                render={({ field }) => (
+                  <FormItem className="m-0">
+                    <FormControl>
+                      <Combobox
+                        options={productOptions}
+                        value={field.value}
+                        onChange={(value) => {
+                          const selectedId = Number(value);
+                          const selectedProduct = products.find(p => p.id === selectedId);
+                          field.onChange(selectedId);
+                          form.setValue(
+                            `items.${index}.productName`,
+                            selectedProduct?.name || ''
+                          );
+                        }}
+                        placeholder="Select a product..."
+                        searchPlaceholder="Search products..."
+                        emptyPlaceholder="No products found."
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+  
+            {/* Quantity */}
+            <div className="col-span-2">
+              <FormField
+                name={`items.${index}.quantity`}
+                control={control}
+                render={({ field }) => (
+                  <FormItem className="m-0">
+                    <FormControl>
+                      <Input type="number" {...field} className="text-center" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+  
+            {/* Rate */}
+            <div className="col-span-3">
+              <FormField
+                name={`items.${index}.rate`}
+                control={control}
+                render={({ field }) => (
+                  <FormItem className="m-0">
+                    <FormControl>
+                      <Input type="number" {...field} className="text-center" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+  
+            {/* Remove button */}
+            <button
+              type="button"
+              onClick={() => remove(index)}
+              className="absolute right-2 text-gray-400 hover:text-red-500"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        ))}
+  
+        {/* Add Item button */}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() =>
+            append({ productId: 0, quantity: 1, rate: 0, productName: '' })
+          }
+          className="flex items-center gap-2"
+        >
+          <PlusCircle className="h-4 w-4" /> Add Item
+        </Button>
+      </div>
     );
-}
+  }
+  
 
 export default function PurchasePage() {
     const { toast } = useToast();
