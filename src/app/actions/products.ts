@@ -6,7 +6,7 @@ import * as z from 'zod';
 import { revalidatePath } from 'next/cache';
 import type { RowDataPacket, OkPacket } from 'mysql2';
 import { writeFile, mkdir } from 'fs/promises';
-import { join, dirname } from 'path';
+import { join } from 'path';
 import { randomUUID } from 'crypto';
 
 
@@ -25,7 +25,7 @@ interface ProductCategory {
 }
 
 // Interface for Product data
-interface Product {
+export interface Product {
     id: number;
     userId: number;
     categoryId: number;
@@ -56,7 +56,7 @@ const productSchema = z.object({
     photo: z
       .any()
       .refine((file) => {
-        if (!file || !(file instanceof File) || file.size === 0) return true; // Not a new file or empty, so skip validation
+        if (!file || !(file instanceof File) || file.size === 0) return true;
         return file.size <= MAX_FILE_SIZE;
       }, `Max file size is 1MB.`)
       .refine((file) => {
@@ -114,7 +114,6 @@ export const deleteProductCategory = async (id: number) => {
     try {
         await connection.beginTransaction();
         
-        // Check if any products are using this category
         const [products] = await connection.query<RowDataPacket[]>('SELECT `id` FROM `Product` WHERE `categoryId` = ? AND `userId` = ?', [id, userId]);
         if (products.length > 0) {
             await connection.rollback();
@@ -202,14 +201,13 @@ export const upsertProduct = async (formData: FormData) => {
             console.log(`DEBUG: Target upload directory: ${uploadDir}`);
             console.log(`DEBUG: Full file path: ${path}`);
             
-            // Ensure the directory exists.
             await mkdir(uploadDir, { recursive: true });
             console.log("DEBUG: Directory exists or was created.");
             
             await writeFile(path, buffer);
             console.log("DEBUG: File written to disk successfully.");
             
-            photoUrl = `/uploads/products/${uniqueFilename}`; // The public URL path
+            photoUrl = `/uploads/products/${uniqueFilename}`;
             console.log(`DEBUG: New photoUrl: ${photoUrl}`);
 
         } catch (e) {
@@ -236,6 +234,7 @@ export const upsertProduct = async (formData: FormData) => {
             );
         }
         revalidatePath('/dashboard/products');
+        revalidatePath('/dashboard/purchase');
         console.log("DEBUG: Database operation successful and path revalidated.");
         return { success: id ? "Product updated successfully." : "Product added successfully." };
     } catch (error) {
@@ -258,3 +257,5 @@ export const deleteProduct = async (id: number) => {
         return { error: "Database Error: Could not delete the product." };
     }
 };
+
+    

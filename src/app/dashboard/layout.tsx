@@ -59,6 +59,7 @@ import CreateQuotationPage from "./quotations/create/page";
 import ManageEmployeesPage from "./attendance/employees/page";
 import EmployeeReportPage from "./attendance/employees/[employeeId]/page";
 import ProductsPage from "./products/page";
+import PurchasePage from "./purchase/page";
 import { getCompanyDetails } from "../actions/company";
 
 // Helper function to create a component map
@@ -74,6 +75,7 @@ const createPageMap = () => {
         '/dashboard/attendance/employees': ManageEmployeesPage,
         '/dashboard/account': AccountPage,
         '/dashboard/products': ProductsPage,
+        '/dashboard/purchase': PurchasePage,
     };
 
     // Add dynamic routes with placeholder components
@@ -102,6 +104,8 @@ const createPageMap = () => {
     ManageEmployeesPage.icon = Users;
     ProductsPage.title = "Product Manager";
     ProductsPage.icon = Package;
+    PurchasePage.title = "Purchase Manager";
+    PurchasePage.icon = ShoppingCart;
     
     ViewBillPage.isDynamic = true;
     ViewQuotationPage.isDynamic = true;
@@ -137,8 +141,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
   const handleNavClick = (e: React.MouseEvent, href: string) => {
     e.preventDefault();
-    if (href === "/dashboard/purchase" || href === "/dashboard/reports") {
-        // Placeholder for future implementation
+    if (href === "/dashboard/reports") {
         alert(`${href.split('/')[2].replace('-', ' ')} is not yet implemented.`);
         return;
     }
@@ -298,3 +301,5 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </AppStateProvider>
   );
 }
+
+    

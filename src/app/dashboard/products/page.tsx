@@ -63,11 +63,11 @@ const productSchema = z.object({
     photo: z
       .any()
       .refine((file) => {
-        if (!file || !(file instanceof File)) return true; // Not a new file, so skip validation
+        if (!file || !(file instanceof File) || file.size === 0) return true;
         return file.size <= MAX_FILE_SIZE;
       }, `Max file size is 1MB.`)
       .refine((file) => {
-        if (!file || !(file instanceof File)) return true;
+        if (!file || !(file instanceof File) || file.size === 0) return true;
         return ACCEPTED_IMAGE_TYPES.includes(file.type);
       }, "Only .jpg and .png formats are supported.")
       .optional(),
