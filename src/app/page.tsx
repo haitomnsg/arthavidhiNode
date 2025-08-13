@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -81,7 +82,11 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-6"
+              suppressHydrationWarning
+            >
               <FormField
                 control={form.control}
                 name="email"
@@ -94,6 +99,7 @@ export default function LoginPage() {
                         placeholder="you@example.com"
                         {...field}
                         disabled={isPending}
+                        suppressHydrationWarning
                       />
                     </FormControl>
                     <FormMessage />
@@ -107,13 +113,24 @@ export default function LoginPage() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} disabled={isPending}/>
+                      <Input
+                        type="password"
+                        placeholder="••••••••"
+                        {...field}
+                        disabled={isPending}
+                        suppressHydrationWarning
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full text-lg h-12" disabled={isPending}>
+              <Button
+                type="submit"
+                className="w-full text-lg h-12"
+                disabled={isPending}
+                suppressHydrationWarning
+              >
                 {isPending ? "Logging In..." : "Log In"}
               </Button>
             </form>

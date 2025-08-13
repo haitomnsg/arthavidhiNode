@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -87,7 +88,11 @@ export default function RegisterPage() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-4"
+              suppressHydrationWarning
+            >
               <FormField
                 control={form.control}
                 name="name"
@@ -95,7 +100,12 @@ export default function RegisterPage() {
                   <FormItem>
                     <FormLabel>Full Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="John Doe" {...field} disabled={isPending} />
+                      <Input
+                        placeholder="John Doe"
+                        {...field}
+                        disabled={isPending}
+                        suppressHydrationWarning
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -108,7 +118,12 @@ export default function RegisterPage() {
                   <FormItem>
                     <FormLabel>Phone Number</FormLabel>
                     <FormControl>
-                      <Input placeholder="98XXXXXXXX" {...field} disabled={isPending} />
+                      <Input
+                        placeholder="98XXXXXXXX"
+                        {...field}
+                        disabled={isPending}
+                        suppressHydrationWarning
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -126,6 +141,7 @@ export default function RegisterPage() {
                         placeholder="you@example.com"
                         {...field}
                         disabled={isPending}
+                        suppressHydrationWarning
                       />
                     </FormControl>
                     <FormMessage />
@@ -139,13 +155,24 @@ export default function RegisterPage() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} disabled={isPending} />
+                      <Input
+                        type="password"
+                        placeholder="••••••••"
+                        {...field}
+                        disabled={isPending}
+                        suppressHydrationWarning
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full text-lg h-12" disabled={isPending}>
+              <Button
+                type="submit"
+                className="w-full text-lg h-12"
+                disabled={isPending}
+                suppressHydrationWarning
+              >
                 {isPending ? "Registering..." : "Register"}
               </Button>
             </form>
