@@ -48,13 +48,13 @@ function PurchaseItems({ control, products }: { control: any, products: Product[
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Purchase Items</h3>
       {fields.map((field, index) => (
-        <div key={field.id} className="flex w-full gap-4 items-end p-4 border rounded-lg">
-          <div className="flex-1 flex flex-col md:flex-row gap-4 w-full">
+        <div key={field.id} className="flex gap-4 items-end p-4 border rounded-lg relative">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 flex-1">
             <FormField
               name={`items.${index}.productId`}
               control={control}
               render={({ field }) => (
-                <FormItem className="flex-grow">
+                <FormItem className="md:col-span-7">
                   <FormLabel>Product Name</FormLabel>
                    <Combobox
                         options={productOptions}
@@ -68,8 +68,8 @@ function PurchaseItems({ control, products }: { control: any, products: Product[
                 </FormItem>
               )}
             />
-            <FormField name={`items.${index}.quantity`} control={control} render={({ field }) => (<FormItem className="w-full md:w-24 shrink-0"><FormLabel>Quantity</FormLabel><FormControl><Input type="number" {...field} placeholder="1" /></FormControl><FormMessage /></FormItem>)} />
-            <FormField name={`items.${index}.rate`} control={control} render={({ field }) => (<FormItem className="w-full md:w-32 shrink-0"><FormLabel>Rate (Rs.)</FormLabel><FormControl><Input type="number" {...field} placeholder="100.00" /></FormControl><FormMessage /></FormItem>)} />
+            <FormField name={`items.${index}.quantity`} control={control} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Quantity</FormLabel><FormControl><Input type="number" {...field} placeholder="1" /></FormControl><FormMessage /></FormItem>)} />
+            <FormField name={`items.${index}.rate`} control={control} render={({ field }) => (<FormItem className="md:col-span-3"><FormLabel>Rate (Rs.)</FormLabel><FormControl><Input type="number" {...field} placeholder="100.00" /></FormControl><FormMessage /></FormItem>)} />
           </div>
           <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-muted-foreground hover:text-destructive shrink-0"><X className="h-4 w-4" /></Button>
         </div>
