@@ -60,6 +60,7 @@ import ManageEmployeesPage from "./attendance/employees/page";
 import EmployeeReportPage from "./attendance/employees/[employeeId]/page";
 import ProductsPage from "./products/page";
 import PurchasePage from "./purchase/page";
+import ReportsPage from "./reports/page";
 import { getCompanyDetails } from "../actions/company";
 
 // Helper function to create a component map
@@ -76,6 +77,7 @@ const createPageMap = () => {
         '/dashboard/account': AccountPage,
         '/dashboard/products': ProductsPage,
         '/dashboard/purchase': PurchasePage,
+        '/dashboard/reports': ReportsPage,
     };
 
     // Add dynamic routes with placeholder components
@@ -96,6 +98,8 @@ const createPageMap = () => {
     AttendancePage.icon = Users;
     AccountPage.title = "Settings";
     AccountPage.icon = Settings;
+    ReportsPage.title = "Reports Manager";
+    ReportsPage.icon = AreaChart;
     CreateBillPage.title = "Create Bill";
     CreateBillPage.icon = PlusCircle;
     CreateQuotationPage.title = "Create Quotation";
@@ -141,11 +145,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
   const handleNavClick = (e: React.MouseEvent, href: string) => {
     e.preventDefault();
-    if (href === "/dashboard/reports") {
-        alert(`${href.split('/')[2].replace('-', ' ')} is not yet implemented.`);
-        return;
-    }
-
+    
     const targetTab = navItems.find(item => item.href === href);
     if(targetTab){
       openTab({
@@ -301,5 +301,3 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     </AppStateProvider>
   );
 }
-
-    
