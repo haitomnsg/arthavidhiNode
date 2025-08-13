@@ -23,7 +23,7 @@ const purchaseFormSchema = z.object({
   supplierPhone: z.string().optional(),
   supplierBillNumber: z.string().min(1, "Supplier bill number is required"),
   purchaseDate: z.date({ required_error: "A purchase date is required." }),
-  items: z.array(purchaseItemSchema).min(1, "At least one item is required"),
+  items: z.array(purchaseItemSchema.extend({ productName: z.string().optional() })).min(1, "At least one item is required"),
   remarks: z.string().optional(),
 });
 
@@ -106,6 +106,3 @@ export const getAllPurchases = async () => {
         return { error: "Database Error: Could not fetch purchases." };
     }
 };
-    
-
-    
