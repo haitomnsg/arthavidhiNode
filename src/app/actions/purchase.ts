@@ -93,4 +93,19 @@ export const createPurchase = async (values: PurchaseFormValues): Promise<{ succ
     }
 }
 
+export const getAllPurchases = async () => {
+    const userId = await getUserId();
+    try {
+        const [rows] = await db.query<RowDataPacket[]>(
+            'SELECT `id`, `supplierBillNumber`, `supplierName`, `purchaseDate` FROM `Purchase` WHERE `userId` = ? ORDER BY `purchaseDate` DESC, `createdAt` DESC',
+            [userId]
+        );
+        return { success: true, data: rows };
+    } catch (error) {
+        console.error("Failed to fetch purchases:", error);
+        return { error: "Database Error: Could not fetch purchases." };
+    }
+};
+    
+
     

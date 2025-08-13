@@ -5,7 +5,7 @@ import React, { useState, useEffect, useTransition } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { CalendarIcon, PlusCircle, Save, X, ShoppingCart } from 'lucide-react';
+import { CalendarIcon, PlusCircle, Save, X, ShoppingCart, Eye, Edit, Trash2, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 import { Button } from '@/components/ui/button';
@@ -18,9 +18,11 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { getProducts, Product } from '@/app/actions/products';
-import { createPurchase, PurchaseFormValues } from '@/app/actions/purchase';
+import { createPurchase, PurchaseFormValues, getAllPurchases } from '@/app/actions/purchase';
 import { Separator } from '@/components/ui/separator';
 import { Combobox } from '@/components/ui/combobox';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const purchaseItemSchema = z.object({
   productId: z.coerce.number().min(1, "Product is required"),
@@ -48,30 +50,36 @@ function PurchaseItems({ control, products }: { control: any, products: Product[
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Purchase Items</h3>
       {fields.map((field, index) => (
-        <div key={field.id} className="flex w-full gap-4 items-end p-4 border rounded-lg relative">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 w-full">
-            <FormField
-              name={`items.${index}.productId`}
-              control={control}
-              render={({ field }) => (
-                <FormItem className="md:col-span-7">
-                  <FormLabel>Product Name</FormLabel>
-                   <Combobox
-                        options={productOptions}
-                        value={field.value}
-                        onChange={field.onChange}
-                        placeholder="Select a product..."
-                        searchPlaceholder="Search products..."
-                        emptyPlaceholder="No products found."
+         <div key={field.id} className="flex w-full gap-4 items-end p-4 border rounded-lg relative">
+            <div className="flex md:flex-row flex-col w-full gap-4 items-end">
+                <div className="w-full md:w-1/2 flex-grow">
+                     <FormField
+                      name={`items.${index}.productId`}
+                      control={control}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Product Name</FormLabel>
+                           <Combobox
+                                options={productOptions}
+                                value={field.value}
+                                onChange={field.onChange}
+                                placeholder="Select a product..."
+                                searchPlaceholder="Search products..."
+                                emptyPlaceholder="No products found."
+                            />
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField name={`items.${index}.quantity`} control={control} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Quantity</FormLabel><FormControl><Input type="number" {...field} placeholder="1" /></FormControl><FormMessage /></FormItem>)} />
-            <FormField name={`items.${index}.rate`} control={control} render={({ field }) => (<FormItem className="md:col-span-3"><FormLabel>Rate (Rs.)</FormLabel><FormControl><Input type="number" {...field} placeholder="100.00" /></FormControl><FormMessage /></FormItem>)} />
-          </div>
-          <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-muted-foreground hover:text-destructive shrink-0"><X className="h-4 w-4" /></Button>
+                </div>
+                <div className="w-full md:w-24">
+                     <FormField name={`items.${index}.quantity`} control={control} render={({ field }) => (<FormItem><FormLabel>Quantity</FormLabel><FormControl><Input type="number" {...field} placeholder="1" /></FormControl><FormMessage /></FormItem>)} />
+                </div>
+                <div className="w-full md:w-32">
+                    <FormField name={`items.${index}.rate`} control={control} render={({ field }) => (<FormItem><FormLabel>Rate (Rs.)</FormLabel><FormControl><Input type="number" {...field} placeholder="100.00" /></FormControl><FormMessage /></FormItem>)} />
+                </div>
+            </div>
+            <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-muted-foreground hover:text-destructive shrink-0"><X className="h-4 w-4" /></Button>
         </div>
       ))}
       <Button type="button" variant="outline" onClick={() => append({ productId: 0, quantity: 1, rate: 0 })}><PlusCircle className="mr-2 h-4 w-4" /> Add Item</Button>
@@ -81,6 +89,19 @@ function PurchaseItems({ control, products }: { control: any, products: Product[
 
 
 export default function PurchasePage() {
+    return (
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div className="lg:col-span-3">
+                <PurchaseForm />
+            </div>
+            <div className="lg:col-span-2">
+                <PurchaseHistory />
+            </div>
+        </div>
+    );
+}
+
+function PurchaseForm() {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [products, setProducts] = useState<Product[]>([]);
@@ -114,12 +135,15 @@ export default function PurchasePage() {
       if (result.success) {
         toast({ title: "Success", description: result.success });
         form.reset();
+        // Here you would typically trigger a refetch of the history component
+        // For now, we rely on the user to see the updated list on next load or manual refresh
+        window.dispatchEvent(new CustomEvent('purchasesUpdated'));
       } else {
         toast({ title: "Error", description: result.error, variant: "destructive" });
       }
     });
   };
-
+  
   return (
     <Card>
       <CardHeader>
@@ -142,7 +166,7 @@ export default function PurchasePage() {
               </div>
               <FormField name="supplierAddress" control={form.control} render={({ field }) => (<FormItem><FormLabel>Supplier Address (Optional)</FormLabel><FormControl><Textarea {...field} placeholder="123 Industrial Rd, Anytown..." /></FormControl><FormMessage /></FormItem>)} />
             </div>
-
+            
             <Separator />
             
              <div className="space-y-4">
@@ -190,3 +214,110 @@ export default function PurchasePage() {
     </Card>
   );
 }
+
+
+type PurchaseLog = {
+    id: number;
+    supplierBillNumber: string;
+    supplierName: string;
+    purchaseDate: Date;
+}
+
+function PurchaseHistory() {
+    const [history, setHistory] = useState<PurchaseLog[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const { toast } = useToast();
+
+    const fetchHistory = () => {
+        setIsLoading(true);
+        getAllPurchases().then(res => {
+            if(res.success) {
+                setHistory(res.data || []);
+            } else {
+                toast({ title: "Error", description: "Failed to load purchase history.", variant: "destructive"});
+            }
+        }).finally(() => setIsLoading(false));
+    }
+
+    useEffect(() => {
+        fetchHistory();
+
+        const handleUpdate = () => fetchHistory();
+        window.addEventListener('purchasesUpdated', handleUpdate);
+        return () => window.removeEventListener('purchasesUpdated', handleUpdate);
+    }, [toast]);
+    
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Purchase History</CardTitle>
+                <CardDescription>A log of all your past purchases.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {isLoading ? (
+                    <TableSkeleton />
+                ) : (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Bill #</TableHead>
+                                <TableHead>Supplier</TableHead>
+                                <TableHead>Date</TableHead>
+                                <TableHead className="text-center">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {history.length > 0 ? history.map(log => (
+                                <TableRow key={log.id}>
+                                    <TableCell className="font-medium">{log.supplierBillNumber}</TableCell>
+                                    <TableCell>{log.supplierName}</TableCell>
+                                    <TableCell>{format(new Date(log.purchaseDate), 'PP')}</TableCell>
+                                    <TableCell className="text-center">
+                                       <div className="flex gap-1 justify-center">
+                                            <Button variant="ghost" size="icon"><Eye className="h-4 w-4 text-primary" /></Button>
+                                            <Button variant="ghost" size="icon"><Edit className="h-4 w-4 text-primary" /></Button>
+                                            <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                       </div>
+                                    </TableCell>
+                                </TableRow>
+                            )) : (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="h-24 text-center">No purchase history found.</TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                )}
+            </CardContent>
+        </Card>
+    )
+}
+
+function TableSkeleton() {
+  return (
+    <div className="space-y-4">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead><Skeleton className="h-5 w-20" /></TableHead>
+            <TableHead><Skeleton className="h-5 w-24" /></TableHead>
+            <TableHead><Skeleton className="h-5 w-20" /></TableHead>
+            <TableHead className="text-center"><Skeleton className="h-5 w-20 mx-auto" /></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {[...Array(5)].map((_, i) => (
+            <TableRow key={i}>
+              <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+              <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+              <TableCell><Skeleton className="h-5 w-full" /></TableCell>
+              <TableCell><Skeleton className="h-5 w-20 mx-auto" /></TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+    
