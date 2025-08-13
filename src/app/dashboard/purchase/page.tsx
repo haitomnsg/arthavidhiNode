@@ -48,8 +48,8 @@ function PurchaseItems({ control, products }: { control: any, products: Product[
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Purchase Items</h3>
       {fields.map((field, index) => (
-        <div key={field.id} className="flex gap-4 items-end p-4 border rounded-lg w-full">
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 flex-1">
+        <div key={field.id} className="flex w-full gap-4 items-end p-4 border rounded-lg">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-3 flex-1">
             <FormField
               name={`items.${index}.productId`}
               control={control}
