@@ -11,6 +11,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -34,6 +35,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getAllBills, getBillDetails } from "@/app/actions/bills";
 import { generateBillPdf } from "@/components/bill-pdf-download";
 import { useAppState } from "@/hooks/use-app-state";
+import { cn } from "@/lib/utils";
 
 type Bill = {
   id: number;
@@ -52,6 +54,8 @@ export default function BillsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const { openTab, activeTab } = useAppState();
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
 
   const fetchBills = useCallback(() => {
     setIsLoading(true);
@@ -83,6 +87,13 @@ export default function BillsPage() {
         bill.clientName.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm, bills]);
+  
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = filteredBills.slice(indexOfFirstRecord, indexOfLastRecord);
+  const nPages = Math.ceil(filteredBills.length / recordsPerPage);
+  const pageNumbers = Array.from({ length: nPages }, (_, i) => i + 1);
+
 
   const handleDownload = async (billId: number) => {
     setDownloadingId(billId);
@@ -157,8 +168,8 @@ export default function BillsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredBills.length > 0 ? (
-                  filteredBills.map((bill) => (
+                {currentRecords.length > 0 ? (
+                  currentRecords.map((bill) => (
                     <TableRow key={bill.id}>
                       <TableCell className="font-medium">
                         {bill.invoiceNumber}
@@ -235,6 +246,23 @@ export default function BillsPage() {
             </Table>
           )}
         </CardContent>
+         {nPages > 1 && (
+          <CardFooter>
+            <div className="flex justify-center items-center w-full space-x-2">
+              {pageNumbers.map(pgNumber => (
+                <Button 
+                  key={pgNumber} 
+                  onClick={() => setCurrentPage(pgNumber)}
+                  variant={currentPage === pgNumber ? 'default' : 'outline'}
+                  size="icon"
+                  className={cn(currentPage === pgNumber && "bg-primary text-primary-foreground")}
+                >
+                  {pgNumber}
+                </Button>
+              ))}
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </TooltipProvider>
   );

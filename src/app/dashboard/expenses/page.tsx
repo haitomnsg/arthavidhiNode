@@ -9,11 +9,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter as FormDialogFooter } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -201,6 +201,8 @@ function ExpenseStatsDashboard({ stats, isLoading }: { stats: ExpenseStats | nul
 function ExpenseTable({ expenses, isLoading, onEdit, onDeleted }: { expenses: Expense[], isLoading: boolean, onEdit: (expense: Expense) => void, onDeleted: () => void }) {
     const [isPending, startTransition] = useTransition();
     const { toast } = useToast();
+    const [currentPage, setCurrentPage] = useState(1);
+    const recordsPerPage = 10;
 
     const handleDelete = (id: number) => {
         startTransition(async () => {
@@ -214,6 +216,12 @@ function ExpenseTable({ expenses, isLoading, onEdit, onDeleted }: { expenses: Ex
         });
     };
 
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    const currentRecords = expenses.slice(indexOfFirstRecord, indexOfLastRecord);
+    const nPages = Math.ceil(expenses.length / recordsPerPage);
+    const pageNumbers = Array.from({ length: nPages }, (_, i) => i + 1);
+
     if (isLoading) {
         return (
             <div className="space-y-2">
@@ -226,57 +234,74 @@ function ExpenseTable({ expenses, isLoading, onEdit, onDeleted }: { expenses: Ex
     }
 
     return (
-        <Table>
-            <TableHeader>
-                <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                    <TableHead className="text-center">Actions</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {expenses.length > 0 ? expenses.map((expense) => (
-                    <TableRow key={expense.id}>
-                        <TableCell>{format(new Date(expense.date), "PPP")}</TableCell>
-                        <TableCell className="font-medium">{expense.category}</TableCell>
-                        <TableCell className="text-muted-foreground">{expense.description || 'N/A'}</TableCell>
-                        <TableCell className="text-right font-semibold">Rs. {Number(expense.amount).toFixed(2)}</TableCell>
-                        <TableCell className="text-center">
-                            <div className="flex items-center justify-center gap-1">
-                                <Button variant="ghost" size="icon" onClick={() => onEdit(expense)} disabled={isPending}>
-                                    <Edit className="h-4 w-4" />
-                                </Button>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="ghost" size="icon" disabled={isPending}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                This will permanently delete the expense record. This action cannot be undone.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleDelete(expense.id)}>Delete</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </div>
-                        </TableCell>
-                    </TableRow>
-                )) : (
+        <div>
+            <Table>
+                <TableHeader>
                     <TableRow>
-                        <TableCell colSpan={5} className="h-24 text-center">
-                            No expenses found.
-                        </TableCell>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead className="text-center">Actions</TableHead>
                     </TableRow>
-                )}
-            </TableBody>
-        </Table>
+                </TableHeader>
+                <TableBody>
+                    {currentRecords.length > 0 ? currentRecords.map((expense) => (
+                        <TableRow key={expense.id}>
+                            <TableCell>{format(new Date(expense.date), "PPP")}</TableCell>
+                            <TableCell className="font-medium">{expense.category}</TableCell>
+                            <TableCell className="text-muted-foreground">{expense.description || 'N/A'}</TableCell>
+                            <TableCell className="text-right font-semibold">Rs. {Number(expense.amount).toFixed(2)}</TableCell>
+                            <TableCell className="text-center">
+                                <div className="flex items-center justify-center gap-1">
+                                    <Button variant="ghost" size="icon" onClick={() => onEdit(expense)} disabled={isPending}>
+                                        <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" size="icon" disabled={isPending}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This will permanently delete the expense record. This action cannot be undone.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDelete(expense.id)}>Delete</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    )) : (
+                        <TableRow>
+                            <TableCell colSpan={5} className="h-24 text-center">
+                                No expenses found.
+                            </TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+            </Table>
+            {nPages > 1 && (
+                <div className="flex justify-center items-center w-full space-x-2 pt-4">
+                  {pageNumbers.map(pgNumber => (
+                    <Button 
+                      key={pgNumber} 
+                      onClick={() => setCurrentPage(pgNumber)}
+                      variant={currentPage === pgNumber ? 'default' : 'outline'}
+                      size="icon"
+                      className={cn(currentPage === pgNumber && "bg-primary text-primary-foreground")}
+                    >
+                      {pgNumber}
+                    </Button>
+                  ))}
+                </div>
+            )}
+        </div>
     );
 }
 
@@ -375,18 +400,16 @@ function ExpenseFormDialog({ isOpen, onClose, onSuccess, expense }: { isOpen: bo
                                 <FormMessage />
                             </FormItem>
                         )} />
-                        <DialogFooter>
+                        <FormDialogFooter>
                             <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
                             <Button type="submit" disabled={isPending}>
                                 {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                                 {isPending ? 'Saving...' : 'Save Expense'}
                             </Button>
-                        </DialogFooter>
+                        </FormDialogFooter>
                     </form>
                 </Form>
             </DialogContent>
         </Dialog>
     )
 }
-
-    

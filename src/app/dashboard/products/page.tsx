@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect, useTransition, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -42,6 +42,7 @@ import {
     upsertProduct,
     deleteProduct
 } from '@/app/actions/products';
+import { cn } from '@/lib/utils';
 
 
 // Schemas and Types
@@ -216,6 +217,9 @@ function ProductManager() {
     const [isPending, startTransition] = useTransition();
     const [searchTerm, setSearchTerm] = useState("");
     const { toast } = useToast();
+    const [currentPage, setCurrentPage] = useState(1);
+    const recordsPerPage = 10;
+
 
     const fetchData = () => {
         setIsLoading(true);
@@ -254,6 +258,12 @@ function ProductManager() {
     
     const filteredProducts = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()) || p.categoryName.toLowerCase().includes(searchTerm.toLowerCase()));
 
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    const currentRecords = filteredProducts.slice(indexOfFirstRecord, indexOfLastRecord);
+    const nPages = Math.ceil(filteredProducts.length / recordsPerPage);
+    const pageNumbers = Array.from({ length: nPages }, (_, i) => i + 1);
+
     return (
         <Card>
             <CardHeader>
@@ -288,7 +298,7 @@ function ProductManager() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredProducts.length > 0 ? filteredProducts.map(prod => (
+                            {currentRecords.length > 0 ? currentRecords.map(prod => (
                                 <TableRow key={prod.id}>
                                     <TableCell className="font-medium flex items-center gap-3">
                                         <div className="w-10 h-10 bg-muted rounded-md flex items-center justify-center">
@@ -323,6 +333,23 @@ function ProductManager() {
                     </Table>
                 )}
             </CardContent>
+            {nPages > 1 && (
+              <CardFooter>
+                <div className="flex justify-center items-center w-full space-x-2">
+                  {pageNumbers.map(pgNumber => (
+                    <Button 
+                      key={pgNumber} 
+                      onClick={() => setCurrentPage(pgNumber)}
+                      variant={currentPage === pgNumber ? 'default' : 'outline'}
+                      size="icon"
+                      className={cn(currentPage === pgNumber && "bg-primary text-primary-foreground")}
+                    >
+                      {pgNumber}
+                    </Button>
+                  ))}
+                </div>
+              </CardFooter>
+            )}
             {categories.length === 0 && !isLoading && (
                  <CardFooter>
                     <p className="text-sm text-muted-foreground">Please add a category first to be able to add products.</p>
@@ -532,5 +559,3 @@ function ProductFormDialog({ isOpen, onClose, onSuccess, product, categories }: 
         </Dialog>
     );
 }
-
-    

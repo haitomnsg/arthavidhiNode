@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect, useTransition, useMemo } from 'react';
 import { format } from 'date-fns';
 import { Eye, Loader2, UserPlus, ArrowLeft, Users, CalendarClock } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -47,6 +47,7 @@ import { useToast } from '@/hooks/use-toast';
 import { addEmployee, getAllEmployees } from '@/app/actions/attendance';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAppState } from '@/hooks/use-app-state';
+import { cn } from '@/lib/utils';
 
 type Employee = {
     id: number;
@@ -71,6 +72,23 @@ export default function ManageEmployeesPage() {
     const { toast } = useToast();
     const [isFormOpen, setIsFormOpen] = useState(false);
     const { openTab, setActiveTab } = useAppState();
+    const [currentPage, setCurrentPage] = useState(1);
+    const recordsPerPage = 10;
+
+    const fetchEmployees = () => {
+        setIsLoading(true);
+        getAllEmployees().then(res => {
+            if (res.success && res.data) {
+                setEmployees(res.data);
+            } else {
+                toast({ title: "Error", description: res.error, variant: "destructive" });
+            }
+        }).finally(() => setIsLoading(false));
+    };
+
+    useEffect(() => {
+        fetchEmployees();
+    }, [toast]);
 
     const handleBackToAttendance = () => {
         openTab({
@@ -81,17 +99,6 @@ export default function ManageEmployeesPage() {
         });
         setActiveTab('/dashboard/attendance');
     };
-
-    useEffect(() => {
-        setIsLoading(true);
-        getAllEmployees().then(res => {
-            if (res.success && res.data) {
-                setEmployees(res.data);
-            } else {
-                toast({ title: "Error", description: res.error, variant: "destructive" });
-            }
-        }).finally(() => setIsLoading(false));
-    }, [toast]);
     
     const handleViewReport = (employee: Employee) => {
         openTab({
@@ -101,6 +108,13 @@ export default function ManageEmployeesPage() {
             props: { params: { employeeId: employee.id } }
         });
     };
+    
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    const currentRecords = employees.slice(indexOfFirstRecord, indexOfLastRecord);
+    const nPages = Math.ceil(employees.length / recordsPerPage);
+    const pageNumbers = Array.from({ length: nPages }, (_, i) => i + 1);
+
 
     return (
         <Card>
@@ -125,7 +139,7 @@ export default function ManageEmployeesPage() {
                                 </DialogHeader>
                                 <AddEmployeeForm onSuccess={() => {
                                     setIsFormOpen(false);
-                                    getAllEmployees().then(res => res.success && setEmployees(res.data || []));
+                                    fetchEmployees();
                                 }} />
                             </DialogContent>
                         </Dialog>
@@ -147,7 +161,7 @@ export default function ManageEmployeesPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {employees.length > 0 ? employees.map((employee) => (
+                            {currentRecords.length > 0 ? currentRecords.map((employee) => (
                                 <TableRow key={employee.id}>
                                     <TableCell className="font-medium">{employee.name}</TableCell>
                                     <TableCell>{employee.position}</TableCell>
@@ -170,6 +184,23 @@ export default function ManageEmployeesPage() {
                     </Table>
                 )}
             </CardContent>
+            {nPages > 1 && (
+              <CardFooter>
+                <div className="flex justify-center items-center w-full space-x-2">
+                  {pageNumbers.map(pgNumber => (
+                    <Button 
+                      key={pgNumber} 
+                      onClick={() => setCurrentPage(pgNumber)}
+                      variant={currentPage === pgNumber ? 'default' : 'outline'}
+                      size="icon"
+                      className={cn(currentPage === pgNumber && "bg-primary text-primary-foreground")}
+                    >
+                      {pgNumber}
+                    </Button>
+                  ))}
+                </div>
+              </CardFooter>
+            )}
         </Card>
     );
 }

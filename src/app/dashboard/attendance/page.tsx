@@ -6,13 +6,14 @@ import { format } from 'date-fns';
 import { Loader2, UserPlus, Users, PlusCircle, Search } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { getAttendanceForDate, clockIn, clockOut, updateAttendanceTime, markAsAbsent } from '@/app/actions/attendance';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { useAppState } from '@/hooks/use-app-state';
+import { cn } from '@/lib/utils';
 
 type AttendanceData = {
     employeeId: number;
@@ -32,6 +33,8 @@ export default function AttendancePage() {
     const { toast } = useToast();
     const { openTab } = useAppState();
     const [searchTerm, setSearchTerm] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const recordsPerPage = 10;
 
     useEffect(() => {
         setIsLoading(true);
@@ -55,6 +58,13 @@ export default function AttendancePage() {
         );
     }, [searchTerm, attendance]);
     
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    const currentRecords = filteredAttendance.slice(indexOfFirstRecord, indexOfLastRecord);
+    const nPages = Math.ceil(filteredAttendance.length / recordsPerPage);
+    const pageNumbers = Array.from({ length: nPages }, (_, i) => i + 1);
+
+
     const handleManageEmployees = () => {
         openTab({
           id: '/dashboard/attendance/employees',
@@ -178,7 +188,7 @@ export default function AttendancePage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredAttendance.length > 0 ? filteredAttendance.map(att => (
+                            {currentRecords.length > 0 ? currentRecords.map(att => (
                                 <TableRow key={att.employeeId}>
                                     <TableCell className="font-medium">{att.name}</TableCell>
                                     <TableCell>{att.position}</TableCell>
@@ -233,10 +243,23 @@ export default function AttendancePage() {
                     </Table>
                 )}
             </CardContent>
+            {nPages > 1 && (
+              <CardFooter>
+                <div className="flex justify-center items-center w-full space-x-2">
+                  {pageNumbers.map(pgNumber => (
+                    <Button 
+                      key={pgNumber} 
+                      onClick={() => setCurrentPage(pgNumber)}
+                      variant={currentPage === pgNumber ? 'default' : 'outline'}
+                      size="icon"
+                      className={cn(currentPage === pgNumber && "bg-primary text-primary-foreground")}
+                    >
+                      {pgNumber}
+                    </Button>
+                  ))}
+                </div>
+              </CardFooter>
+            )}
         </Card>
     );
 }
-
-    
-
-    

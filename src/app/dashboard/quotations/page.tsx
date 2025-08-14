@@ -10,6 +10,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -33,6 +34,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getAllQuotations, getQuotationDetails } from "@/app/actions/quotations";
 import { generateQuotationPdf } from "@/components/quotation-pdf-download";
 import { useAppState } from "@/hooks/use-app-state";
+import { cn } from "@/lib/utils";
 
 type Quotation = {
   id: number;
@@ -49,6 +51,8 @@ export default function QuotationsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const { openTab, activeTab } = useAppState();
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 10;
 
   const fetchQuotations = useCallback(() => {
     setIsLoading(true);
@@ -81,6 +85,13 @@ export default function QuotationsPage() {
         q.clientName.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm, quotations]);
+  
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentRecords = filteredQuotations.slice(indexOfFirstRecord, indexOfLastRecord);
+  const nPages = Math.ceil(filteredQuotations.length / recordsPerPage);
+  const pageNumbers = Array.from({ length: nPages }, (_, i) => i + 1);
+
 
   const handleDownload = async (quotationId: number) => {
     setDownloadingId(quotationId);
@@ -153,8 +164,8 @@ export default function QuotationsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredQuotations.length > 0 ? (
-                  filteredQuotations.map((quotation) => (
+                {currentRecords.length > 0 ? (
+                  currentRecords.map((quotation) => (
                     <TableRow key={quotation.id}>
                       <TableCell className="font-medium">
                         {quotation.quotationNumber}
@@ -210,6 +221,23 @@ export default function QuotationsPage() {
             </Table>
           )}
         </CardContent>
+        {nPages > 1 && (
+          <CardFooter>
+            <div className="flex justify-center items-center w-full space-x-2">
+              {pageNumbers.map(pgNumber => (
+                <Button 
+                  key={pgNumber} 
+                  onClick={() => setCurrentPage(pgNumber)}
+                  variant={currentPage === pgNumber ? 'default' : 'outline'}
+                  size="icon"
+                  className={cn(currentPage === pgNumber && "bg-primary text-primary-foreground")}
+                >
+                  {pgNumber}
+                </Button>
+              ))}
+            </div>
+          </CardFooter>
+        )}
       </Card>
     </TooltipProvider>
   );

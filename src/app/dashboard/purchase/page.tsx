@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect, useTransition, useMemo } from 'react';
 import { format } from 'date-fns';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useFieldArray, useForm, FormProvider, useFormContext } from 'react-hook-form';
@@ -54,6 +54,8 @@ export default function PurchasePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const { toast } = useToast();
+    const [currentPage, setCurrentPage] = useState(1);
+    const recordsPerPage = 10;
 
     const fetchPurchases = () => {
         setIsLoading(true);
@@ -67,6 +69,13 @@ export default function PurchasePage() {
     };
 
     useEffect(fetchPurchases, [toast]);
+
+    const indexOfLastRecord = currentPage * recordsPerPage;
+    const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+    const currentRecords = purchases.slice(indexOfFirstRecord, indexOfLastRecord);
+    const nPages = Math.ceil(purchases.length / recordsPerPage);
+    const pageNumbers = Array.from({ length: nPages }, (_, i) => i + 1);
+
 
     return (
         <div className="space-y-6">
@@ -117,7 +126,7 @@ export default function PurchasePage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {purchases.length > 0 ? purchases.map(p => (
+                                {currentRecords.length > 0 ? currentRecords.map(p => (
                                     <TableRow key={p.id}>
                                         <TableCell>{format(new Date(p.purchaseDate), 'PP')}</TableCell>
                                         <TableCell className="font-medium">{p.supplierName}</TableCell>
@@ -142,6 +151,23 @@ export default function PurchasePage() {
                         </Table>
                     )}
                 </CardContent>
+                {nPages > 1 && (
+                  <CardFooter>
+                    <div className="flex justify-center items-center w-full space-x-2">
+                      {pageNumbers.map(pgNumber => (
+                        <Button 
+                          key={pgNumber} 
+                          onClick={() => setCurrentPage(pgNumber)}
+                          variant={currentPage === pgNumber ? 'default' : 'outline'}
+                          size="icon"
+                          className={cn(currentPage === pgNumber && "bg-primary text-primary-foreground")}
+                        >
+                          {pgNumber}
+                        </Button>
+                      ))}
+                    </div>
+                  </CardFooter>
+                )}
             </Card>
         </div>
     );
@@ -260,7 +286,7 @@ function PurchaseItems({ control, products }: { control: any, products: Product[
     return (
         <div className="space-y-4">
             {fields.map((field, index) => (
-                <div key={field.id} className="flex gap-4 items-end p-4 border rounded-lg relative">
+                 <div key={field.id} className="flex gap-4 items-end p-4 border rounded-lg relative">
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4 flex-1">
                         <FormField name={`items.${index}.productId`} control={control} render={({ field }) => (
                             <FormItem className="md:col-span-5 flex flex-col justify-end">
