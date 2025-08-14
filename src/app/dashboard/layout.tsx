@@ -59,7 +59,6 @@ import CreateQuotationPage from "./quotations/create/page";
 import ManageEmployeesPage from "./attendance/employees/page";
 import EmployeeReportPage from "./attendance/employees/[employeeId]/page";
 import ProductsPage from "./products/page";
-import PurchasePage from "./purchase/page";
 import ReportsPage from "./reports/page";
 import { getCompanyDetails } from "../actions/company";
 
@@ -76,7 +75,6 @@ const createPageMap = () => {
         '/dashboard/attendance/employees': ManageEmployeesPage,
         '/dashboard/account': AccountPage,
         '/dashboard/products': ProductsPage,
-        '/dashboard/purchase': PurchasePage,
         '/dashboard/reports': ReportsPage,
     };
 
@@ -108,8 +106,6 @@ const createPageMap = () => {
     ManageEmployeesPage.icon = Users;
     ProductsPage.title = "Product Manager";
     ProductsPage.icon = Package;
-    PurchasePage.title = "Purchase Manager";
-    PurchasePage.icon = ShoppingCart;
     
     ViewBillPage.isDynamic = true;
     ViewQuotationPage.isDynamic = true;
@@ -123,7 +119,6 @@ const pageComponents = createPageMap();
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
   { href: "/dashboard/products", icon: Package, label: "Product Manager" },
-  { href: "/dashboard/purchase", icon: ShoppingCart, label: "Purchase Manager" },
   { href: "/dashboard/bills", icon: FileText, label: "Sales Manager" },
   { href: "/dashboard/quotations", icon: FileSearch, label: "Quotation Manager" },
   { href: "/dashboard/expenses", icon: Wallet, label: "Expenses Manager" },

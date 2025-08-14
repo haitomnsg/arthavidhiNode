@@ -234,7 +234,6 @@ export const upsertProduct = async (formData: FormData) => {
             );
         }
         revalidatePath('/dashboard/products');
-        revalidatePath('/dashboard/purchase');
         console.log("DEBUG: Database operation successful and path revalidated.");
         return { success: id ? "Product updated successfully." : "Product added successfully." };
     } catch (error) {
@@ -257,5 +256,3 @@ export const deleteProduct = async (id: number) => {
         return { error: "Database Error: Could not delete the product." };
     }
 };
-
-    

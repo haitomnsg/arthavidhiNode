@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useTransition } from "react";
@@ -10,14 +11,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/hooks/use-toast";
-import { getSalesReport, getExpenseReport, getPurchaseReport, getProfitLossReport } from "@/app/actions/reports";
+import { getSalesReport, getExpenseReport } from "@/app/actions/reports";
 import { generateSalesReportPdf } from "@/components/reports/sales-report-pdf";
 import { generateExpenseReportPdf } from "@/components/reports/expense-report-pdf";
-import { generatePurchaseReportPdf } from "@/components/reports/purchase-report-pdf";
-import { generateProfitLossReportPdf } from "@/components/reports/profit-loss-pdf";
 import { getCompanyDetails } from "@/app/actions/company";
 
-type ReportType = 'sales' | 'expense' | 'purchase' | 'pnl';
+type ReportType = 'sales' | 'expense';
 
 type ReportCardProps = {
   title: string;
@@ -97,8 +96,6 @@ export default function ReportsPage() {
     const [generating, setGenerating] = useState({
         sales: false,
         expense: false,
-        purchase: false,
-        pnl: false,
     });
     const [isPending, startTransition] = useTransition();
 
@@ -137,28 +134,6 @@ export default function ReportsPage() {
         });
     };
 
-    const handleGeneratePurchaseReport = (dateRange: DateRange) => {
-        handleGeneration('purchase', async () => {
-            const [purchaseResponse, companyResponse] = await Promise.all([
-                getPurchaseReport(dateRange.from!, dateRange.to!),
-                getCompanyDetails()
-            ]);
-            if (purchaseResponse.error) throw new Error(purchaseResponse.error);
-            generatePurchaseReportPdf({ reportData: purchaseResponse.data, company: companyResponse, dateRange });
-        });
-    };
-
-    const handleGenerateProfitLossReport = (dateRange: DateRange) => {
-        handleGeneration('pnl', async () => {
-            const [pnlResponse, companyResponse] = await Promise.all([
-                getProfitLossReport(dateRange.from!, dateRange.to!),
-                getCompanyDetails()
-            ]);
-            if (pnlResponse.error) throw new Error(pnlResponse.error);
-            generateProfitLossReportPdf({ reportData: pnlResponse.data, company: companyResponse, dateRange });
-        });
-    };
-
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-4">
@@ -183,18 +158,6 @@ export default function ReportsPage() {
                     description="Detailed breakdown of all expenses by category."
                     onGenerate={handleGenerateExpenseReport}
                     isGenerating={generating.expense}
-                />
-                <ReportCard
-                    title="Purchase Report"
-                    description="Summary of all inventory purchases and costs from suppliers."
-                    onGenerate={handleGeneratePurchaseReport}
-                    isGenerating={generating.purchase}
-                />
-                 <ReportCard
-                    title="Profit &amp; Loss Report"
-                    description="Compares revenue vs. expenses to estimate profitability."
-                    onGenerate={handleGenerateProfitLossReport}
-                    isGenerating={generating.pnl}
                 />
             </div>
         </div>
