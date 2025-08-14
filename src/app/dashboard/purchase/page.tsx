@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useTransition, useMemo } from 'react';
+import React, { useState, useEffect, useTransition } from 'react';
 import { format } from 'date-fns';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useFieldArray, useForm, FormProvider, useFormContext } from 'react-hook-form';
@@ -118,9 +118,9 @@ export default function PurchasePage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Supplier</TableHead>
                                     <TableHead>Supplier Bill #</TableHead>
+                                    <TableHead>Supplier</TableHead>
+                                    <TableHead>Date</TableHead>
                                     <TableHead className="text-right">Amount</TableHead>
                                     <TableHead className="text-center">Actions</TableHead>
                                 </TableRow>
@@ -128,9 +128,9 @@ export default function PurchasePage() {
                             <TableBody>
                                 {currentRecords.length > 0 ? currentRecords.map(p => (
                                     <TableRow key={p.id}>
-                                        <TableCell>{format(new Date(p.purchaseDate), 'PP')}</TableCell>
-                                        <TableCell className="font-medium">{p.supplierName}</TableCell>
                                         <TableCell>{p.supplierBillNumber}</TableCell>
+                                        <TableCell className="font-medium">{p.supplierName}</TableCell>
+                                        <TableCell>{format(new Date(p.purchaseDate), 'PP')}</TableCell>
                                         <TableCell className="text-right">Rs. {Number(p.totalAmount || 0).toFixed(2)}</TableCell>
                                         <TableCell className="text-center">
                                             <div className="flex items-center justify-center gap-1">

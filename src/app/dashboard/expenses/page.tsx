@@ -147,16 +147,15 @@ export default function ExpensesPage() {
 function ExpenseStatsDashboard({ stats, isLoading }: { stats: ExpenseStats | null, isLoading: boolean }) {
     if (isLoading || !stats) {
         return (
-             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+             <div className="grid gap-4 md:grid-cols-2">
                 <Skeleton className="h-28" />
                 <Skeleton className="h-28" />
-                <Card className="lg:col-span-2"><Skeleton className="h-28" /></Card>
             </div>
         )
     }
     
     return (
-         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+         <div className="grid gap-4 md:grid-cols-2">
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Expenses (This Month)</CardTitle>
@@ -173,25 +172,6 @@ function ExpenseStatsDashboard({ stats, isLoading }: { stats: ExpenseStats | nul
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">Rs. {stats.totalAllTime.toFixed(2)}</div>
-                </CardContent>
-            </Card>
-             <Card className="lg:col-span-2">
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium">Top Categories (This Month)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                     {stats.byCategory.length > 0 ? (
-                        <div className="flex flex-wrap gap-x-4 gap-y-2">
-                            {stats.byCategory.map(cat => (
-                                <div key={cat.category} className="text-sm">
-                                    <span className="font-semibold">{cat.category}:</span>
-                                    <span className="text-muted-foreground ml-1">Rs. {Number(cat.total).toFixed(2)}</span>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-sm text-muted-foreground">No expenses recorded this month.</p>
-                    )}
                 </CardContent>
             </Card>
         </div>
