@@ -4,13 +4,13 @@
 import React, { useState, useEffect, useTransition } from 'react';
 import { format } from 'date-fns';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useFieldArray, useForm, FormProvider } from 'react-hook-form';
+import { useFieldArray, useForm, FormProvider, useFormContext } from 'react-hook-form';
 import * as z from 'zod';
 import { PlusCircle, ShoppingCart, Loader2, X, CalendarIcon, Edit, Trash2, Eye } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,7 +23,9 @@ import { cn } from '@/lib/utils';
 import { Combobox } from '@/components/ui/combobox';
 import type { Product } from '@/app/actions/products';
 import { getProducts } from '@/app/actions/products';
-import { createPurchase, getPurchases, PurchaseFormValues } from '@/app/actions/purchase';
+import { createPurchase, getPurchases } from '@/app/actions/purchase';
+import type { PurchaseFormValues } from '@/app/actions/purchase';
+
 
 // Schemas and Types
 const purchaseItemSchema = z.object({
@@ -212,9 +214,9 @@ function AddPurchaseForm({ onSuccess }: { onSuccess: () => void }) {
                              <FormField control={form.control} name="purchaseDate" render={({ field }) => (
                                  <FormItem className="flex flex-col"><FormLabel>Purchase Date</FormLabel>
                                      <Popover><PopoverTrigger asChild><FormControl>
-                                         <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{field.value ? format(field.value, "PPP") : <span>Pick a date</span>}</Button>
+                                         <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}><CalendarIcon className="mr-2 h-4 w-4" />{field.value ? format(new Date(field.value), "PPP") : <span>Pick a date</span>}</Button>
                                      </FormControl></PopoverTrigger><PopoverContent className="w-auto p-0" align="start">
-                                         <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                         <Calendar mode="single" selected={new Date(field.value)} onSelect={field.onChange} initialFocus />
                                      </PopoverContent></Popover><FormMessage />
                                  </FormItem>
                              )}/>
@@ -258,28 +260,27 @@ function PurchaseItems({ control, products }: { control: any, products: Product[
     return (
         <div className="space-y-4">
             {fields.map((field, index) => (
-                <div key={field.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end p-4 border rounded-lg">
-                    <FormField name={`items.${index}.productId`} control={control} render={({ field }) => (
-                        <FormItem className="md:col-span-6 flex flex-col justify-end">
-                            <FormLabel>Product Name</FormLabel>
-                            <Combobox
-                                options={productOptions}
-                                value={field.value}
-                                onChange={field.onChange}
-                                placeholder="Select a product..."
-                                searchPlaceholder='Search products...'
-                                emptyPlaceholder='No products found.'
-                            />
-                            <FormMessage />
-                        </FormItem>
-                    )} />
-                    <FormField name={`items.${index}.quantity`} control={control} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Quantity</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField name={`items.${index}.unit`} control={control} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Unit</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    <FormField name={`items.${index}.rate`} control={control} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Rate</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                    
-                    <div className="md:col-span-12 flex justify-end">
-                         <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-muted-foreground hover:text-destructive"><X className="h-4 w-4" /></Button>
+                <div key={field.id} className="flex gap-4 items-end p-4 border rounded-lg relative">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 flex-1">
+                        <FormField name={`items.${index}.productId`} control={control} render={({ field }) => (
+                            <FormItem className="md:col-span-5 flex flex-col justify-end">
+                                <FormLabel>Product Name</FormLabel>
+                                <Combobox
+                                    options={productOptions}
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    placeholder="Select a product..."
+                                    searchPlaceholder='Search products...'
+                                    emptyPlaceholder='No products found.'
+                                />
+                                <FormMessage />
+                            </FormItem>
+                        )} />
+                        <FormField name={`items.${index}.quantity`} control={control} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Quantity</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        <FormField name={`items.${index}.unit`} control={control} render={({ field }) => (<FormItem className="md:col-span-2"><FormLabel>Unit</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        <FormField name={`items.${index}.rate`} control={control} render={({ field }) => (<FormItem className="md:col-span-3"><FormLabel>Rate</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>)} />
                     </div>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)} className="text-muted-foreground hover:text-destructive shrink-0"><X className="h-4 w-4" /></Button>
                 </div>
             ))}
             <Button type="button" variant="outline" onClick={() => append({ productId: 0, quantity: 1, unit: 'Pcs', rate: 0 })}><PlusCircle className="mr-2 h-4 w-4" /> Add Item</Button>
@@ -297,8 +298,8 @@ function TableSkeleton() {
                         <TableHead><Skeleton className="h-5 w-24" /></TableHead>
                         <TableHead><Skeleton className="h-5 w-32" /></TableHead>
                         <TableHead><Skeleton className="h-5 w-24" /></TableHead>
-                        <TableHead><Skeleton className="h-5 w-20 ml-auto" /></TableHead>
-                        <TableHead><Skeleton className="h-5 w-20 mx-auto" /></TableHead>
+                        <TableHead className="text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableHead>
+                        <TableHead className="text-center"><Skeleton className="h-5 w-20 mx-auto" /></TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
