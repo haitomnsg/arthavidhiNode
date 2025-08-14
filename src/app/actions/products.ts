@@ -50,7 +50,7 @@ const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/jpg"];
 const productSchema = z.object({
     id: z.number().optional(),
     name: z.string().min(1, "Product name is required."),
-    categoryId: z.coerce.number().min(1, "Category is required."),
+    categoryId: z.coerce.number({invalid_type_error: "Category is required."}).min(1, "Category is required."),
     quantity: z.coerce.number().min(0, "Quantity cannot be negative."),
     rate: z.coerce.number().min(0, "Rate cannot be negative."),
     photo: z
@@ -234,6 +234,7 @@ export const upsertProduct = async (formData: FormData) => {
             );
         }
         revalidatePath('/dashboard/products');
+        revalidatePath('/dashboard/purchase');
         console.log("DEBUG: Database operation successful and path revalidated.");
         return { success: id ? "Product updated successfully." : "Product added successfully." };
     } catch (error) {
