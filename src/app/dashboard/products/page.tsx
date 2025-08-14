@@ -157,9 +157,9 @@ function ProductCategoryManager() {
                 <div className="flex items-center justify-between">
                     <div>
                         <CardTitle>Categories</CardTitle>
-                        <CardDescription>Product groups</CardDescription>
+                        <CardDescription>All Product Categories</CardDescription>
                     </div>
-                    <Button size="sm" onClick={() => handleOpenForm()}><PlusCircle className="mr-2 h-4 w-4" /> Add</Button>
+                    <Button size="sm" onClick={() => handleOpenForm()}><PlusCircle className="mr-2 h-4 w-4" /> Add Category</Button>
                 </div>
             </CardHeader>
             <CardContent>
@@ -260,7 +260,7 @@ function ProductManager() {
                 <div className="flex items-center justify-between">
                     <div>
                         <CardTitle>Products</CardTitle>
-                        <CardDescription>Your inventory of items</CardDescription>
+                        <CardDescription>All Inventory Items</CardDescription>
                     </div>
                      <Button onClick={() => handleOpenForm()} disabled={categories.length === 0}>
                         <PlusCircle className="mr-2 h-4 w-4" /> Add Product

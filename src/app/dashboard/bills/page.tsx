@@ -133,7 +133,7 @@ export default function BillsPage() {
           <div className="relative mt-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by invoice # or client name..."
+              placeholder="Search by invoice number or client name..."
               className="pl-9"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -147,7 +147,7 @@ export default function BillsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Invoice #</TableHead>
+                  <TableHead>Invoice No.</TableHead>
                   <TableHead>Client Name</TableHead>
                   <TableHead>Client Phone</TableHead>
                   <TableHead>Date</TableHead>

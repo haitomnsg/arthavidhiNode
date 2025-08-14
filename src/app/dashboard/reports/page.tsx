@@ -149,7 +149,7 @@ export default function ReportsPage() {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 <ReportCard
                     title="Sales Report"
-                    description="Summary of revenue, discounts, and VAT from all bills."
+                    description="Summary of revenue of all bills."
                     onGenerate={handleGenerateSalesReport}
                     isGenerating={generating.sales}
                 />

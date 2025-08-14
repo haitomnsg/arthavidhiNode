@@ -153,7 +153,7 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
             <p className="text-muted-foreground">
-              Here's a quick overview of your business.
+              Quick Overview of your Business.
             </p>
           </div>
           <Button onClick={handleCreateBill}>
@@ -178,14 +178,14 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle>Recent Bills</CardTitle>
             <CardDescription>
-              Your 5 most recent bills.
+              Recently created Bills.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[100px]">Invoice #</TableHead>
+                  <TableHead className="w-[100px]">Invoice No.</TableHead>
                   <TableHead>Client Name</TableHead>
                   <TableHead>Client Phone</TableHead>
                   <TableHead>Date</TableHead>
