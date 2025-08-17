@@ -9,13 +9,13 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'zod';
+import { z } from 'genkit';
 
 const BillItemSchema = z.object({
-  description: z.string().describe('The description of the bill item.'),
-  quantity: z.number().describe('The quantity of the bill item.'),
-  unit: z.string().describe('The unit of the bill item (e.g., Pcs, Kg, Ltr).'),
-  rate: z.number().describe('The rate per unit for the bill item.'),
+  description: z.string().optional().describe('The description of the bill item.'),
+  quantity: z.number().optional().describe('The quantity of the bill item.'),
+  unit: z.string().optional().describe('The unit of the bill item (e.g., Pcs, Kg, Ltr).'),
+  rate: z.number().optional().describe('The rate per unit for the bill item.'),
 });
 
 const CreateBillFromTextOutputSchema = z.object({
@@ -41,8 +41,8 @@ Extract the following details:
 - Client Phone
 - A list of all items, including their description, quantity, unit, and rate.
 
-Today's date is ${new Date().toLocaleDateString()}. If the user doesn't specify a date, assume it's today.
-If any information is missing, leave the corresponding field blank.
+Today's date is ${new Date().toLocaleDateString()}.
+If any information is missing, leave the corresponding field blank, as a null, or as an empty string. Do not invent information.
 Provide the output in the requested JSON format.
 `,
 });

@@ -203,15 +203,26 @@ export default function CreateBillPage() {
     startAiTransition(async () => {
         try {
             const result = await createBillFromText(aiPrompt);
+            
+            // DEBUGGING: Log the result from the AI
+            console.log("AI Result:", result);
+
             const currentValues = form.getValues();
             
-            form.reset({
-                ...currentValues, // Keep existing values not provided by AI
+            // Create a new state object by merging current values with AI results.
+            // AI results will only overwrite if they are not null/undefined.
+            const newValues = {
+                ...currentValues,
                 clientName: result.clientName || currentValues.clientName,
                 clientAddress: result.clientAddress || currentValues.clientAddress,
                 clientPhone: result.clientPhone || currentValues.clientPhone,
                 items: result.items && result.items.length > 0 ? result.items : currentValues.items,
-            });
+            };
+
+            // DEBUGGING: Log the object that will be used to reset the form
+            console.log("Values to reset form with:", newValues);
+
+            form.reset(newValues);
             
             toast({ title: "Bill Details Filled", description: "The form has been populated by AI."});
         } catch (error) {
@@ -471,5 +482,3 @@ export default function CreateBillPage() {
     </>
   );
 }
-
-    
