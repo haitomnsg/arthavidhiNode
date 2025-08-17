@@ -203,13 +203,15 @@ export default function CreateBillPage() {
     startAiTransition(async () => {
         try {
             const result = await createBillFromText(aiPrompt);
-            if (result.clientName) form.setValue('clientName', result.clientName, { shouldValidate: true });
-            if (result.clientAddress) form.setValue('clientAddress', result.clientAddress, { shouldValidate: true });
-            if (result.clientPhone) form.setValue('clientPhone', result.clientPhone, { shouldValidate: true });
+            const currentValues = form.getValues();
             
-            if (result.items && result.items.length > 0) {
-                form.setValue('items', result.items, { shouldValidate: true });
-            }
+            form.reset({
+                ...currentValues, // Keep existing values not provided by AI
+                clientName: result.clientName || currentValues.clientName,
+                clientAddress: result.clientAddress || currentValues.clientAddress,
+                clientPhone: result.clientPhone || currentValues.clientPhone,
+                items: result.items && result.items.length > 0 ? result.items : currentValues.items,
+            });
             
             toast({ title: "Bill Details Filled", description: "The form has been populated by AI."});
         } catch (error) {
@@ -469,3 +471,5 @@ export default function CreateBillPage() {
     </>
   );
 }
+
+    
