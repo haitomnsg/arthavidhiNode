@@ -11,6 +11,8 @@ import {
   Save,
   X,
   RotateCcw,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -48,6 +50,7 @@ import { getCompanyDetails } from "@/app/actions/company";
 import { generateBillPdf } from "@/components/bill-pdf-download";
 import { BillPreview } from "@/components/bill-preview";
 import { useAppState } from "@/hooks/use-app-state";
+import { createBillFromText } from "@/ai/flows/create-bill-flow";
 
 interface Company {
   id: number;
@@ -114,6 +117,8 @@ const BillItems = ({ control }: { control: any }) => {
 export default function CreateBillPage() {
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  const [isAiPending, startAiTransition] = useTransition();
+  const [aiPrompt, setAiPrompt] = useState("");
   const [companyDetails, setCompanyDetails] = useState<Partial<Company>>({});
   const [nextInvoiceNumber, setNextInvoiceNumber] = useState<string>("#INV-PREVIEW");
   const { billState, setBillState, resetBillState, closeTab, setActiveTab } = useAppState();
@@ -194,6 +199,26 @@ export default function CreateBillPage() {
       toast({ title: "Form Cleared", description: "The bill form has been reset."});
   }
 
+  const handleAiGenerate = () => {
+    startAiTransition(async () => {
+        try {
+            const result = await createBillFromText(aiPrompt);
+            if (result.clientName) form.setValue('clientName', result.clientName, { shouldValidate: true });
+            if (result.clientAddress) form.setValue('clientAddress', result.clientAddress, { shouldValidate: true });
+            if (result.clientPhone) form.setValue('clientPhone', result.clientPhone, { shouldValidate: true });
+            
+            if (result.items && result.items.length > 0) {
+                form.setValue('items', result.items, { shouldValidate: true });
+            }
+            
+            toast({ title: "Bill Details Filled", description: "The form has been populated by AI."});
+        } catch (error) {
+            console.error("AI generation failed:", error);
+            toast({ title: "AI Error", description: "Could not generate bill details from prompt.", variant: "destructive"});
+        }
+    });
+  }
+
   const onSubmit = (values: BillFormValues) => {
     startTransition(async () => {
       const serverResponse = await createBill(values);
@@ -234,7 +259,32 @@ export default function CreateBillPage() {
   return (
     <>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 print:block">
-        <div className="min-w-0 print:hidden">
+        <div className="min-w-0 print:hidden space-y-6">
+          <Card>
+            <CardHeader>
+                <div className="flex items-center gap-2">
+                    <Sparkles className="h-6 w-6 text-primary" />
+                    <CardTitle>Create Bill with AI</CardTitle>
+                </div>
+                <CardDescription>
+                    Describe the bill you want to create, and let AI fill in the details.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="flex gap-2">
+                    <Input 
+                        placeholder="e.g., Bill for Acme Inc. with 2 widgets at 500 each"
+                        value={aiPrompt}
+                        onChange={(e) => setAiPrompt(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleAiGenerate()}
+                    />
+                    <Button onClick={handleAiGenerate} disabled={isAiPending || !aiPrompt}>
+                        {isAiPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Generate"}
+                    </Button>
+                </div>
+            </CardContent>
+          </Card>
+          
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
