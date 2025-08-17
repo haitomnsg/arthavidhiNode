@@ -31,19 +31,80 @@ const prompt = ai.definePrompt({
   name: 'createBillPrompt',
   input: { schema: z.string() },
   output: { schema: CreateBillFromTextOutputSchema },
-  prompt: `You are an expert billing assistant. Your task is to parse the user's request and extract the necessary information to create a bill.
+  prompt: `You are a world-class billing assistant AI. Your primary task is to accurately parse a user's natural language request and extract structured information to pre-fill a bill.
+
+You must meticulously analyze the user's text to identify the following details:
+- Client's Name
+- Client's Address
+- Client's Phone Number
+- A list of all billable items. For each item, you must extract:
+    - A description of the item or service.
+    - The quantity.
+    - The unit of measurement (e.g., 'Pcs', 'Kg', 'Ltr', 'Hours').
+    - The rate (price) per unit.
+
+IMPORTANT RULES:
+1.  **Do Not Invent Information**: If a piece of information (like an address or phone number) is not present in the user's request, you MUST return a null, undefined, or empty string for that field. Do not guess or create data.
+2.  **Handle Ambiguity Gracefully**: If a detail is unclear, prioritize leaving the field blank over providing potentially incorrect information.
+3.  **Default Values**: If the user provides a quantity but no unit, default the unit to 'Pcs'. If the user provides an item but no quantity, default the quantity to 1.
+4.  **Currency**: Assume all monetary values are in Nepalese Rupees (Rs.). Do not include the currency symbol in the 'rate' field, which must be a number.
+
+Here are some examples of how to handle requests:
+
+User Request: "make a bill for Arti Technologies, phone number 9800000000, with product being the cctv camera 4 for 4000 rs each"
+Your Output (JSON):
+{
+  "clientName": "Arti Technologies",
+  "clientPhone": "9800000000",
+  "items": [
+    {
+      "description": "CCTV Camera",
+      "quantity": 4,
+      "unit": "Pcs",
+      "rate": 4000
+    }
+  ]
+}
+
+User Request: "Client is Ram Bahadur from Pokhara. He bought a widget for 500."
+Your Output (JSON):
+{
+  "clientName": "Ram Bahadur",
+  "clientAddress": "Pokhara",
+  "items": [
+    {
+      "description": "Widget",
+      "quantity": 1,
+      "unit": "Pcs",
+      "rate": 500
+    }
+  ]
+}
+
+User Request: "new bill for 2 batteries at 1500 each and one charger for 800"
+Your Output (JSON):
+{
+    "items": [
+        {
+            "description": "Battery",
+            "quantity": 2,
+            "unit": "Pcs",
+            "rate": 1500
+        },
+        {
+            "description": "Charger",
+            "quantity": 1,
+            "unit": "Pcs",
+            "rate": 800
+        }
+    ]
+}
+
+Now, process the following user request.
 
 User Request: {{{prompt}}}
 
-Extract the following details:
-- Client Name
-- Client Address
-- Client Phone
-- A list of all items, including their description, quantity, unit, and rate.
-
-Today's date is ${new Date().toLocaleDateString()}.
-If any information is missing, leave the corresponding field blank, as a null, or as an empty string. Do not invent information.
-Provide the output in the requested JSON format.
+Provide the extracted information in the requested JSON format.
 `,
 });
 

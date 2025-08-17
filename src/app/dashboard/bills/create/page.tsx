@@ -203,9 +203,6 @@ export default function CreateBillPage() {
     startAiTransition(async () => {
         try {
             const result = await createBillFromText(aiPrompt);
-            
-            // DEBUGGING: Log the result from the AI
-            console.log("AI Result:", result);
 
             const currentValues = form.getValues();
             
@@ -218,9 +215,6 @@ export default function CreateBillPage() {
                 clientPhone: result.clientPhone || currentValues.clientPhone,
                 items: result.items && result.items.length > 0 ? result.items : currentValues.items,
             };
-
-            // DEBUGGING: Log the object that will be used to reset the form
-            console.log("Values to reset form with:", newValues);
 
             form.reset(newValues);
             
