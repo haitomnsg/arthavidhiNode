@@ -9,7 +9,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit/zod';
+import { z } from 'zod';
 
 const BillItemSchema = z.object({
   description: z.string().describe('The description of the bill item.'),
