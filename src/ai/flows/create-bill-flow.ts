@@ -56,6 +56,7 @@ Your Output (JSON):
 {
   "clientName": "Arti Technologies",
   "clientPhone": "9800000000",
+  "clientAddress": null,
   "items": [
     {
       "description": "CCTV Camera",
@@ -71,6 +72,7 @@ Your Output (JSON):
 {
   "clientName": "Ram Bahadur",
   "clientAddress": "Pokhara",
+  "clientPhone": null,
   "items": [
     {
       "description": "Widget",
@@ -84,6 +86,9 @@ Your Output (JSON):
 User Request: "new bill for 2 batteries at 1500 each and one charger for 800"
 Your Output (JSON):
 {
+    "clientName": null,
+    "clientAddress": null,
+    "clientPhone": null,
     "items": [
         {
             "description": "Battery",

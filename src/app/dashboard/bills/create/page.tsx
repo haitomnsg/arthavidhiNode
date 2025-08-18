@@ -50,7 +50,7 @@ import { getCompanyDetails } from "@/app/actions/company";
 import { generateBillPdf } from "@/components/bill-pdf-download";
 import { BillPreview } from "@/components/bill-preview";
 import { useAppState } from "@/hooks/use-app-state";
-import { createBillFromText } from "@/ai/flows/create-bill-flow";
+import { generateSimpleText } from "@/ai/flows/simple-text-flow";
 
 interface Company {
   id: number;
@@ -201,27 +201,20 @@ export default function CreateBillPage() {
 
   const handleAiGenerate = () => {
     startAiTransition(async () => {
+        console.log("Sending prompt to AI:", aiPrompt);
         try {
-            const result = await createBillFromText(aiPrompt);
+            const result = await generateSimpleText(aiPrompt);
 
-            const currentValues = form.getValues();
-            
-            // Create a new state object by merging current values with AI results.
-            // AI results will only overwrite if they are not null/undefined.
-            const newValues = {
-                ...currentValues,
-                clientName: result.clientName || currentValues.clientName,
-                clientAddress: result.clientAddress || currentValues.clientAddress,
-                clientPhone: result.clientPhone || currentValues.clientPhone,
-                items: result.items && result.items.length > 0 ? result.items : currentValues.items,
-            };
+            console.log("AI Result:", result);
+            toast({
+                title: "AI Response",
+                description: <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4"><code className="text-white">{result}</code></pre>,
+                duration: 20000,
+            });
 
-            form.reset(newValues);
-            
-            toast({ title: "Bill Details Filled", description: "The form has been populated by AI."});
         } catch (error) {
             console.error("AI generation failed:", error);
-            toast({ title: "AI Error", description: "Could not generate bill details from prompt.", variant: "destructive"});
+            toast({ title: "AI Error", description: "Could not get response from AI.", variant: "destructive"});
         }
     });
   }
@@ -271,16 +264,16 @@ export default function CreateBillPage() {
             <CardHeader>
                 <div className="flex items-center gap-2">
                     <Sparkles className="h-6 w-6 text-primary" />
-                    <CardTitle>Create Bill with AI</CardTitle>
+                    <CardTitle>AI Assistant</CardTitle>
                 </div>
                 <CardDescription>
-                    Describe the bill you want to create, and let AI fill in the details.
+                    Ask a question or describe the bill you want to create.
                 </CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="flex gap-2">
                     <Input 
-                        placeholder="e.g., Bill for Acme Inc. with 2 widgets at 500 each"
+                        placeholder="e.g., What is a computer?"
                         value={aiPrompt}
                         onChange={(e) => setAiPrompt(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleAiGenerate()}
