@@ -31,25 +31,23 @@ const prompt = ai.definePrompt({
   name: 'createBillPrompt',
   input: { schema: z.string() },
   output: { schema: CreateBillFromTextOutputSchema },
-  prompt: `You are a world-class billing assistant AI. Your primary task is to accurately parse a user's natural language request and extract structured information to pre-fill a bill.
+  prompt: `You are an expert billing assistant. Your task is to extract structured information from a user's request and return it ONLY as a JSON object. Do not provide any conversational text or explanations.
 
-You must meticulously analyze the user's text to identify the following details:
+  You must parse the user's text to find:
 - Client's Name
 - Client's Address
 - Client's Phone Number
-- A list of all billable items. For each item, you must extract:
-    - A description of the item or service.
-    - The quantity.
-    - The unit of measurement (e.g., 'Pcs', 'Kg', 'Ltr', 'Hours').
-    - The rate (price) per unit.
+- A list of all billable items. For each item, extract:
+    - description
+    - quantity (default to 1 if not specified)
+    - unit (default to 'Pcs' if not specified)
+    - rate
 
-IMPORTANT RULES:
-1.  **Do Not Invent Information**: If a piece of information (like an address or phone number) is not present in the user's request, you MUST return a null, undefined, or empty string for that field. Do not guess or create data.
-2.  **Handle Ambiguity Gracefully**: If a detail is unclear, prioritize leaving the field blank over providing potentially incorrect information.
-3.  **Default Values**: If the user provides a quantity but no unit, default the unit to 'Pcs'. If the user provides an item but no quantity, default the quantity to 1.
-4.  **Currency**: Assume all monetary values are in Nepalese Rupees (Rs.). Do not include the currency symbol in the 'rate' field, which must be a number.
+RULES:
+1.  If a piece of information is not present, the field MUST be null or an empty string. Do not make up information.
+2.  Return ONLY the JSON object.
 
-Here are some examples of how to handle requests:
+EXAMPLES:
 
 User Request: "make a bill for Arti Technologies, phone number 9800000000, with product being the cctv camera 4 for 4000 rs each"
 Your Output (JSON):
@@ -59,7 +57,7 @@ Your Output (JSON):
   "clientAddress": null,
   "items": [
     {
-      "description": "CCTV Camera",
+      "description": "cctv camera",
       "quantity": 4,
       "unit": "Pcs",
       "rate": 4000
@@ -75,7 +73,7 @@ Your Output (JSON):
   "clientPhone": null,
   "items": [
     {
-      "description": "Widget",
+      "description": "widget",
       "quantity": 1,
       "unit": "Pcs",
       "rate": 500
@@ -105,11 +103,9 @@ Your Output (JSON):
     ]
 }
 
-Now, process the following user request.
+Process the following user request.
 
 User Request: {{{prompt}}}
-
-Provide the extracted information in the requested JSON format.
 `,
 });
 

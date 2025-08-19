@@ -50,7 +50,7 @@ import { getCompanyDetails } from "@/app/actions/company";
 import { generateBillPdf } from "@/components/bill-pdf-download";
 import { BillPreview } from "@/components/bill-preview";
 import { useAppState } from "@/hooks/use-app-state";
-import { generateSimpleText } from "@/ai/flows/simple-text-flow";
+import { createBillFromText } from "@/ai/flows/create-bill-flow";
 
 interface Company {
   id: number;
@@ -201,16 +201,24 @@ export default function CreateBillPage() {
 
   const handleAiGenerate = () => {
     startAiTransition(async () => {
-        console.log("Sending prompt to AI:", aiPrompt);
         try {
-            const result = await generateSimpleText(aiPrompt);
+            const result = await createBillFromText(aiPrompt);
 
-            console.log("AI Result:", result);
-            toast({
-                title: "AI Response",
-                description: <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4"><code className="text-white">{result}</code></pre>,
-                duration: 20000,
-            });
+            if (result) {
+                toast({ title: "AI Success", description: "Form has been populated." });
+                const currentValues = form.getValues();
+                const newValues = {
+                    ...currentValues,
+                    clientName: result.clientName || currentValues.clientName,
+                    clientAddress: result.clientAddress || currentValues.clientAddress,
+                    clientPhone: result.clientPhone || currentValues.clientPhone,
+                    items: result.items && result.items.length > 0 ? result.items : currentValues.items,
+                };
+                form.reset(newValues);
+                handleBlur(); // Save new state
+            } else {
+                 toast({ title: "AI Info", description: "Could not extract details. Please try a different prompt.", variant: "destructive"});
+            }
 
         } catch (error) {
             console.error("AI generation failed:", error);
@@ -264,16 +272,16 @@ export default function CreateBillPage() {
             <CardHeader>
                 <div className="flex items-center gap-2">
                     <Sparkles className="h-6 w-6 text-primary" />
-                    <CardTitle>AI Assistant</CardTitle>
+                    <CardTitle>Create Bill with AI</CardTitle>
                 </div>
                 <CardDescription>
-                    Ask a question or describe the bill you want to create.
+                    Describe the bill you want to create and let AI fill the form.
                 </CardDescription>
             </CardHeader>
             <CardContent>
                 <div className="flex gap-2">
                     <Input 
-                        placeholder="e.g., What is a computer?"
+                        placeholder="e.g., make a bill for Ram with 2 CCTV cameras at 4000 each..."
                         value={aiPrompt}
                         onChange={(e) => setAiPrompt(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleAiGenerate()}
