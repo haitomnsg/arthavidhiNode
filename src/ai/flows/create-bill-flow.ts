@@ -44,8 +44,9 @@ const prompt = ai.definePrompt({
     - rate
 
 RULES:
-1.  If a piece of information is not present, the field MUST be null or an empty string. Do not make up information.
-2.  Return ONLY the JSON object.
+1. If a piece of information is not present, the field MUST be null or an empty string. Do not make up information.
+2. If the user's request does not appear to be for creating a bill, return a JSON object with null or empty values for all fields. Do not attempt to answer general questions.
+3. Return ONLY the JSON object.
 
 EXAMPLES:
 
@@ -102,6 +103,16 @@ Your Output (JSON):
         }
     ]
 }
+
+User Request: "what is a computer?"
+Your Output (JSON):
+{
+    "clientName": null,
+    "clientAddress": null,
+    "clientPhone": null,
+    "items": []
+}
+
 
 Process the following user request.
 
