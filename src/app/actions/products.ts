@@ -7,7 +7,6 @@ import { revalidatePath } from 'next/cache';
 import type { RowDataPacket, OkPacket } from 'mysql2';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
-import { randomUUID } from 'crypto';
 
 
 // TODO: Replace with authenticated user ID from session
@@ -183,6 +182,7 @@ export const upsertProduct = async (formData: FormData) => {
 
     if (photo && photo instanceof File && photo.size > 0) {
         try {
+            const { randomUUID } = await import('crypto');
             const bytes = await photo.arrayBuffer();
             const buffer = Buffer.from(bytes);
 
