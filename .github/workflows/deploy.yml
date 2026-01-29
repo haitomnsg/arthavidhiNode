@@ -16,8 +16,8 @@ jobs:
       - name: Upload to cPanel via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.3
         with:
-          server: ftp.haitomnsgroups.com
-          username: github@arthavidhi.haitomnsgroups.com
+          server: ftp.wadaconnet.com
+          username: github@arthavidhi.wadaconnect.com
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
           protocol: ftp
