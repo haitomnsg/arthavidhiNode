@@ -303,7 +303,7 @@ function ProductManager() {
                                     <TableCell className="font-medium flex items-center gap-3">
                                         <div className="w-10 h-10 bg-muted rounded-md flex items-center justify-center">
                                         {prod.photoUrl ? (
-                                            <Image src={prod.photoUrl} alt={prod.name} width={40} height={40} className="object-cover rounded-md" data-ai-hint="product image" />
+                                            <Image src={prod.photoUrl} alt={prod.name} width={40} height={40} className="object-cover rounded-md" data-ai-hint="product" />
                                         ) : (
                                             <ImageIcon className="h-5 w-5 text-muted-foreground" />
                                         )}
@@ -489,7 +489,7 @@ function ProductFormDialog({ isOpen, onClose, onSuccess, product, categories }: 
                                       <FormControl>
                                         <div className="w-full h-40 border-2 border-dashed rounded-md flex items-center justify-center text-muted-foreground relative">
                                           {preview ? (
-                                            <Image src={preview} alt="Product preview" layout="fill" className="object-cover rounded-md" />
+                                            <Image src={preview} alt="Product preview" fill className="object-cover rounded-md" />
                                           ) : (
                                             <div className="text-center">
                                                 <ImageIcon className="mx-auto h-8 w-8" />

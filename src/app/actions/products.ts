@@ -161,7 +161,6 @@ export const getProducts = async () => {
 
 export const upsertProduct = async (formData: FormData) => {
     const values = Object.fromEntries(formData.entries());
-    console.log("DEBUG: Raw form values received:", values);
 
     const validatedFields = productSchema.safeParse({
         ...values,
@@ -173,22 +172,16 @@ export const upsertProduct = async (formData: FormData) => {
     });
 
     if (!validatedFields.success) {
-        console.error("DEBUG: Zod validation failed:", validatedFields.error.flatten());
+        console.error("Zod validation failed:", validatedFields.error.flatten());
         return { error: "Invalid fields provided. Check server logs for details." };
     }
     
     const { id, name, categoryId, quantity, rate, photo } = validatedFields.data;
-    console.log("DEBUG: Validated data:", { id, name, categoryId, quantity, rate });
-    console.log("DEBUG: Photo object type:", photo instanceof File ? 'File' : typeof photo);
-    if(photo instanceof File) {
-        console.log("DEBUG: Photo details:", { name: photo.name, size: photo.size, type: photo.type });
-    }
     
     const userId = await getUserId();
     let photoUrl = values.currentPhotoUrl as string || null;
 
     if (photo && photo instanceof File && photo.size > 0) {
-        console.log("DEBUG: Attempting to upload new photo...");
         try {
             const bytes = await photo.arrayBuffer();
             const buffer = Buffer.from(bytes);
@@ -198,36 +191,25 @@ export const upsertProduct = async (formData: FormData) => {
             const uploadDir = join(process.cwd(), 'public', 'uploads', 'products');
             const path = join(uploadDir, uniqueFilename);
             
-            console.log(`DEBUG: Target upload directory: ${uploadDir}`);
-            console.log(`DEBUG: Full file path: ${path}`);
-            
             await mkdir(uploadDir, { recursive: true });
-            console.log("DEBUG: Directory exists or was created.");
-            
             await writeFile(path, buffer);
-            console.log("DEBUG: File written to disk successfully.");
             
             photoUrl = `/uploads/products/${uniqueFilename}`;
-            console.log(`DEBUG: New photoUrl: ${photoUrl}`);
 
         } catch (e) {
-            console.error("DEBUG: File upload error:", e);
+            console.error("File upload error:", e);
             return { error: "Failed to save the photo. See server logs." };
         }
-    } else {
-        console.log("DEBUG: No new photo to upload, keeping existing one:", photoUrl);
     }
 
 
     try {
         if (id) {
-            console.log(`DEBUG: Updating product with ID: ${id}`);
             await db.query(
                 'UPDATE `Product` SET `name` = ?, `categoryId` = ?, `quantity` = ?, `rate` = ?, `photoUrl` = ? WHERE `id` = ? AND `userId` = ?',
                 [name, categoryId, quantity, rate, photoUrl, id, userId]
             );
         } else {
-            console.log("DEBUG: Inserting new product.");
             await db.query(
                 'INSERT INTO `Product` (`userId`, `name`, `categoryId`, `quantity`, `rate`, `photoUrl`) VALUES (?, ?, ?, ?, ?, ?)',
                 [userId, name, categoryId, quantity, rate, photoUrl]
@@ -235,10 +217,9 @@ export const upsertProduct = async (formData: FormData) => {
         }
         revalidatePath('/dashboard/products');
         revalidatePath('/dashboard/purchase');
-        console.log("DEBUG: Database operation successful and path revalidated.");
         return { success: id ? "Product updated successfully." : "Product added successfully." };
     } catch (error) {
-        console.error("DEBUG: Database error:", error);
+        console.error("Database error:", error);
         return { error: "Database Error: Could not save the product." };
     }
 };
