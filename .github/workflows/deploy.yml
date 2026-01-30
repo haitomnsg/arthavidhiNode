@@ -27,3 +27,7 @@ jobs:
             **/node_modules/**
             **/.git/**
             **/.github/**
+            **/.next/**
+            **/docs/**
+            **/*.md
+            **/*.log
