@@ -1,29 +1,66 @@
-name: Deploy Next.js to cPanel via FTP
+name: Build and Deploy Next.js to cPanel
 
 on:
   push:
     branches:
       - master
+  workflow_dispatch:  # Allow manual trigger
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --omit=optional --ignore-scripts
+        env:
+          NODE_ENV: production
+
+      - name: Build application
+        run: npm run build
+        env:
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Create deployment package
+        run: |
+          # For standalone output, the build creates a self-contained folder
+          # that includes a minimal node_modules
+          
+          # Ensure server.js is in the standalone folder
+          cp server.js .next/standalone/ 2>/dev/null || true
+          cp next.config.mjs .next/standalone/ 2>/dev/null || true
+          
+          # Copy static assets (required for standalone)
+          mkdir -p .next/standalone/.next
+          cp -r .next/static .next/standalone/.next/
+          
+          # Copy public folder
+          cp -r public .next/standalone/
+          
+          echo "Deployment package ready in .next/standalone/"
+          ls -la .next/standalone/
+
       - name: Upload to cPanel via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.3
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ftp.wadaconnect.com
           username: github@arthavidhi.wadaconnect.com
           password: ${{ secrets.FTP_PASSWORD }}
           port: 21
           protocol: ftp
-          local-dir: ./
+          local-dir: ./.next/standalone/
           server-dir: ./
+          dangerous-clean-slate: false
           exclude: |
-            **/node_modules/**
             **/.git/**
             **/.github/**

@@ -1,21 +1,32 @@
-import { genkit } from 'genkit';
-import { googleAI } from '@genkit-ai/googleai';
+// AI features are optional - this module handles missing dependencies gracefully
 
-// Check if AI features should be enabled
-const isAIEnabled = !!process.env.GOOGLE_GENAI_API_KEY;
+let ai: any = null;
+let isAIAvailable = false;
 
-// Conditionally initialize Genkit with plugins only if API key is available
-export const ai = genkit({
-  plugins: isAIEnabled ? [googleAI()] : [],
-  model: isAIEnabled ? 'googleai/gemini-2.0-flash' : undefined,
-});
+// Try to initialize Genkit only if the packages are available
+try {
+  if (process.env.GOOGLE_GENAI_API_KEY) {
+    const { genkit } = require('genkit');
+    const { googleAI } = require('@genkit-ai/googleai');
+    
+    ai = genkit({
+      plugins: [googleAI()],
+      model: 'googleai/gemini-2.0-flash',
+    });
+    isAIAvailable = true;
+  }
+} catch (error) {
+  // AI packages not installed or failed to load - this is expected on cPanel
+  console.log('AI features disabled: Genkit packages not available');
+  isAIAvailable = false;
+}
 
-// Export flag to check if AI is available
-export const isAIAvailable = isAIEnabled;
+// Export a mock or real AI instance
+export { ai, isAIAvailable };
 
 // Helper function to check AI availability before using AI features
 export function requireAI(): void {
-  if (!isAIEnabled) {
-    throw new Error('AI features are not available. Please configure GOOGLE_GENAI_API_KEY in your environment variables.');
+  if (!isAIAvailable || !ai) {
+    throw new Error('AI features are not available. Please install genkit packages and configure GOOGLE_GENAI_API_KEY.');
   }
 }
