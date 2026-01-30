@@ -1,3 +1,4 @@
+// AI development server - disabled for cPanel deployment
+// To enable, reinstall genkit packages
 
-// Flows will be imported for their side effects in this file.
-import './flows/create-bill-flow';
+console.log('AI features are disabled. Install genkit packages to enable.');

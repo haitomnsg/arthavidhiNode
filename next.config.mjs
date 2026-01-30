@@ -14,7 +14,7 @@ const nextConfig = {
   // Compress responses
   compress: true,
   
-  // Production source maps (disable if not needed to reduce build size)
+  // Production source maps (disable to reduce build size and memory)
   productionBrowserSourceMaps: false,
   
   typescript: {
@@ -27,7 +27,7 @@ const nextConfig = {
   
   images: {
     // Disable image optimization for cPanel (no native sharp support)
-    unoptimized: process.env.DISABLE_IMAGE_OPTIMIZATION === 'true',
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
@@ -40,8 +40,8 @@ const nextConfig = {
   
   // Experimental features for better performance
   experimental: {
-    // Enable optimized package imports
-    optimizePackageImports: ['lucide-react', 'date-fns', '@radix-ui/react-icons'],
+    // Enable optimized package imports to reduce bundle size
+    optimizePackageImports: ['lucide-react', 'date-fns', 'recharts'],
   },
   
   // Server external packages that should not be bundled
@@ -55,6 +55,12 @@ const nextConfig = {
         'mysql2': 'commonjs mysql2',
       });
     }
+    
+    // Reduce memory usage during build
+    config.optimization = {
+      ...config.optimization,
+      minimize: true,
+    };
     
     // Suppress certain warnings
     config.ignoreWarnings = [

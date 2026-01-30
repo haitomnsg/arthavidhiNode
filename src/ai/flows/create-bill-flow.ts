@@ -2,137 +2,39 @@
 'use server';
 /**
  * @fileOverview An AI flow for creating a bill from a natural language prompt.
- *
- * - createBillFromText - A function that handles parsing the user prompt.
- * - CreateBillFromTextInput - The input type for the function.
- * - CreateBillFromTextOutput - The return type for the function.
+ * 
+ * NOTE: AI features are disabled for cPanel deployment to reduce resource usage.
+ * To enable, reinstall @genkit-ai/googleai and genkit packages.
  */
 
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 
 const BillItemSchema = z.object({
-  description: z.string().optional().describe('The description of the bill item.'),
-  quantity: z.number().optional().describe('The quantity of the bill item.'),
-  unit: z.string().optional().describe('The unit of the bill item (e.g., Pcs, Kg, Ltr).'),
-  rate: z.number().optional().describe('The rate per unit for the bill item.'),
+  description: z.string().optional(),
+  quantity: z.number().optional(),
+  unit: z.string().optional(),
+  rate: z.number().optional(),
 });
 
 const CreateBillFromTextOutputSchema = z.object({
-  clientName: z.string().optional().describe('The name of the client.'),
-  clientAddress: z.string().optional().describe('The address of the client.'),
-  clientPhone: z.string().optional().describe('The phone number of the client.'),
-  items: z.array(BillItemSchema).optional().describe('An array of bill items.'),
+  clientName: z.string().optional(),
+  clientAddress: z.string().optional(),
+  clientPhone: z.string().optional(),
+  items: z.array(BillItemSchema).optional(),
 });
 
 export type CreateBillFromTextOutput = z.infer<typeof CreateBillFromTextOutputSchema>;
 
-const prompt = ai.definePrompt({
-  name: 'createBillPrompt',
-  input: { schema: z.string() },
-  output: { schema: CreateBillFromTextOutputSchema },
-  prompt: `You are an expert billing assistant. Your task is to extract structured information from a user's request and return it ONLY as a JSON object. Do not provide any conversational text or explanations.
-
-  You must parse the user's text to find:
-- Client's Name
-- Client's Address
-- Client's Phone Number
-- A list of all billable items. For each item, extract:
-    - description
-    - quantity (default to 1 if not specified)
-    - unit (default to 'Pcs' if not specified)
-    - rate
-
-RULES:
-1. If a piece of information is not present, the field MUST be null or an empty string. Do not make up information.
-2. If the user's request does not appear to be for creating a bill, return a JSON object with null or empty values for all fields. Do not attempt to answer general questions.
-3. Return ONLY the JSON object.
-
-EXAMPLES:
-
-User Request: "make a bill for Arti Technologies, phone number 9800000000, with product being the cctv camera 4 for 4000 rs each"
-Your Output (JSON):
-{
-  "clientName": "Arti Technologies",
-  "clientPhone": "9800000000",
-  "clientAddress": null,
-  "items": [
-    {
-      "description": "cctv camera",
-      "quantity": 4,
-      "unit": "Pcs",
-      "rate": 4000
-    }
-  ]
-}
-
-User Request: "Client is Ram Bahadur from Pokhara. He bought a widget for 500."
-Your Output (JSON):
-{
-  "clientName": "Ram Bahadur",
-  "clientAddress": "Pokhara",
-  "clientPhone": null,
-  "items": [
-    {
-      "description": "widget",
-      "quantity": 1,
-      "unit": "Pcs",
-      "rate": 500
-    }
-  ]
-}
-
-User Request: "new bill for 2 batteries at 1500 each and one charger for 800"
-Your Output (JSON):
-{
-    "clientName": null,
-    "clientAddress": null,
-    "clientPhone": null,
-    "items": [
-        {
-            "description": "Battery",
-            "quantity": 2,
-            "unit": "Pcs",
-            "rate": 1500
-        },
-        {
-            "description": "Charger",
-            "quantity": 1,
-            "unit": "Pcs",
-            "rate": 800
-        }
-    ]
-}
-
-User Request: "what is a computer?"
-Your Output (JSON):
-{
-    "clientName": null,
-    "clientAddress": null,
-    "clientPhone": null,
-    "items": []
-}
-
-
-Process the following user request.
-
-User Request: {{{prompt}}}
-`,
-});
-
-const createBillFlow = ai.defineFlow(
-  {
-    name: 'createBillFlow',
-    inputSchema: z.string(),
-    outputSchema: CreateBillFromTextOutputSchema,
-  },
-  async (promptText) => {
-    const { output } = await prompt(promptText);
-    return output!;
-  }
-);
-
-
-export async function createBillFromText(promptText: string): Promise<CreateBillFromTextOutput> {
-    return await createBillFlow(promptText);
+/**
+ * AI bill creation is disabled for cPanel deployment.
+ * This function returns an error message instead.
+ */
+export async function createBillFromText(_promptText: string): Promise<CreateBillFromTextOutput> {
+  console.warn('AI features are disabled. createBillFromText called but returning empty result.');
+  return {
+    clientName: undefined,
+    clientAddress: undefined,
+    clientPhone: undefined,
+    items: [],
+  };
 }
