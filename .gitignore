@@ -38,5 +38,5 @@ pnpm-debug.log*
 *.tsbuildinfo
 next-env.d.ts
 
-#img folder
-/public
+# Uploaded images (not core public assets)
+/public/softwareImage/
