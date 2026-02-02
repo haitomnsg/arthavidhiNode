@@ -42,10 +42,9 @@ const nextConfig = {
   experimental: {
     // Enable optimized package imports to reduce bundle size
     optimizePackageImports: ['lucide-react', 'date-fns', 'recharts'],
+    // Server external packages that should not be bundled (Next.js 14 syntax)
+    serverComponentsExternalPackages: ['mysql2', 'bcryptjs'],
   },
-  
-  // Server external packages that should not be bundled
-  serverExternalPackages: ['mysql2', 'bcryptjs'],
   
   // Webpack configuration for production
   webpack: (config, { isServer }) => {
