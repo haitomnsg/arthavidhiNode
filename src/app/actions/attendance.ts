@@ -15,6 +15,11 @@ interface Employee {
     address: string | null;
     phone: string;
     position: string;
+    citizenshipNumber: string;
+    panNumber: string | null;
+    photoUrl: string | null;
+    citizenshipFrontUrl: string | null;
+    citizenshipBackUrl: string | null;
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -43,6 +48,11 @@ const employeeFormSchema = z.object({
   phone: z.string().min(10, "A valid phone number is required."),
   position: z.string().min(2, "Position is required."),
   address: z.string().optional(),
+  citizenshipNumber: z.string().min(1, "Citizenship number is required."),
+  panNumber: z.string().optional(),
+  photoUrl: z.string().optional(),
+  citizenshipFrontUrl: z.string().optional(),
+  citizenshipBackUrl: z.string().optional(),
 });
 
 export const addEmployee = async (values: z.infer<typeof employeeFormSchema>) => {
@@ -53,12 +63,12 @@ export const addEmployee = async (values: z.infer<typeof employeeFormSchema>) =>
         return { error: "Invalid fields provided." };
     }
 
-    const { name, phone, position, address } = validatedFields.data;
+    const { name, phone, position, address, citizenshipNumber, panNumber, photoUrl, citizenshipFrontUrl, citizenshipBackUrl } = validatedFields.data;
 
     try {
         await db.query(
-            'INSERT INTO `Employee` (`userId`, `name`, `phone`, `position`, `address`) VALUES (?, ?, ?, ?, ?)',
-            [userId, name, phone, position, address]
+            'INSERT INTO `Employee` (`userId`, `name`, `phone`, `position`, `address`, `citizenshipNumber`, `panNumber`, `photoUrl`, `citizenshipFrontUrl`, `citizenshipBackUrl`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [userId, name, phone, position, address, citizenshipNumber, panNumber || null, photoUrl || null, citizenshipFrontUrl || null, citizenshipBackUrl || null]
         );
         revalidatePath('/dashboard/attendance');
         revalidatePath('/dashboard/attendance/employees');
@@ -66,6 +76,75 @@ export const addEmployee = async (values: z.infer<typeof employeeFormSchema>) =>
     } catch (error) {
         console.error("Failed to add employee:", error);
         return { error: "Database Error: Failed to add employee." };
+    }
+};
+
+export const getEmployeeById = async (employeeId: number) => {
+    const userId = await getUserId();
+    try {
+        const [rows] = await db.query<RowDataPacket[]>(
+            'SELECT * FROM `Employee` WHERE `id` = ? AND `userId` = ?',
+            [employeeId, userId]
+        );
+        if (rows.length === 0) {
+            return { error: "Employee not found." };
+        }
+        return { success: true, data: rows[0] as Employee };
+    } catch (error) {
+        console.error("Failed to fetch employee:", error);
+        return { error: "Database Error: Failed to fetch employee." };
+    }
+};
+
+export const updateEmployee = async (employeeId: number, values: z.infer<typeof employeeFormSchema>) => {
+    const userId = await getUserId();
+    const validatedFields = employeeFormSchema.safeParse(values);
+
+    if (!validatedFields.success) {
+        return { error: "Invalid fields provided." };
+    }
+
+    const { name, phone, position, address, citizenshipNumber, panNumber, photoUrl, citizenshipFrontUrl, citizenshipBackUrl } = validatedFields.data;
+
+    try {
+        const [result] = await db.query<OkPacket>(
+            'UPDATE `Employee` SET `name` = ?, `phone` = ?, `position` = ?, `address` = ?, `citizenshipNumber` = ?, `panNumber` = ?, `photoUrl` = ?, `citizenshipFrontUrl` = ?, `citizenshipBackUrl` = ? WHERE `id` = ? AND `userId` = ?',
+            [name, phone, position, address, citizenshipNumber, panNumber || null, photoUrl || null, citizenshipFrontUrl || null, citizenshipBackUrl || null, employeeId, userId]
+        );
+        
+        if (result.affectedRows === 0) {
+            return { error: "Employee not found or you don't have permission to edit." };
+        }
+        
+        revalidatePath('/dashboard/attendance');
+        revalidatePath('/dashboard/attendance/employees');
+        return { success: "Employee updated successfully." };
+    } catch (error) {
+        console.error("Failed to update employee:", error);
+        return { error: "Database Error: Failed to update employee." };
+    }
+};
+
+export const deleteEmployee = async (employeeId: number) => {
+    const userId = await getUserId();
+    
+    try {
+        // Soft delete by setting isActive to false
+        const [result] = await db.query<OkPacket>(
+            'UPDATE `Employee` SET `isActive` = false WHERE `id` = ? AND `userId` = ?',
+            [employeeId, userId]
+        );
+        
+        if (result.affectedRows === 0) {
+            return { error: "Employee not found or you don't have permission to delete." };
+        }
+        
+        revalidatePath('/dashboard/attendance');
+        revalidatePath('/dashboard/attendance/employees');
+        return { success: "Employee deleted successfully." };
+    } catch (error) {
+        console.error("Failed to delete employee:", error);
+        return { error: "Database Error: Failed to delete employee." };
     }
 };
 

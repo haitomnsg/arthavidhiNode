@@ -112,6 +112,11 @@ CREATE TABLE `Employee` (
   `address` text DEFAULT NULL,
   `phone` varchar(191) NOT NULL,
   `position` varchar(191) NOT NULL,
+  `citizenshipNumber` varchar(191) NOT NULL,
+  `panNumber` varchar(191) DEFAULT NULL,
+  `photoUrl` varchar(500) DEFAULT NULL,
+  `citizenshipFrontUrl` varchar(500) DEFAULT NULL,
+  `citizenshipBackUrl` varchar(500) DEFAULT NULL,
   `isActive` tinyint(1) NOT NULL DEFAULT 1,
   `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
   `updatedAt` datetime(3) NOT NULL DEFAULT current_timestamp(3) ON UPDATE current_timestamp(3)
@@ -195,7 +200,9 @@ CREATE TABLE `PurchaseItem` (
   `id` int(11) NOT NULL,
   `purchaseId` int(11) NOT NULL,
   `productId` int(11) NOT NULL,
+  `productName` varchar(191) NOT NULL,
   `quantity` int(11) NOT NULL,
+  `unit` varchar(191) NOT NULL,
   `rate` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
