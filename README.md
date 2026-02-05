@@ -1,8 +1,8 @@
-# ArthaVidhi - Comprehensive Billing & Management Solution
+<img width="1918" height="905" alt="artha" src="https://github.com/user-attachments/assets/ffafac60-7568-4c95-b742-ba994ef79672" /># ArthaVidhi - Comprehensive Billing & Management Solution
 
 ArthaVidhi is a modern, full-stack web application designed to simplify billing, inventory, and business management for small to medium-sized enterprises. Built with Next.js and a powerful backend, it provides an intuitive, tab-based interface for managing key business operations efficiently.
 
-![ArthaVidhi Screenshot](https://placehold.co/800x450.png?text=ArthaVidhi+App)
+<img width="1918" height="905" alt="artha" src="https://github.com/user-attachments/assets/650ef4b7-6c03-4293-9ad5-fed7004b0b7f" />
 
 ---
 
